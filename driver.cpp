@@ -5,11 +5,11 @@ using namespace std;
 
 int main()
 {
-	// Define parameters for simulation
-	//------------------------------------------------------------
+    // Define parameters for simulation
+    //------------------------------------------------------------
 
-	// Output stream
-	ofstream OutStream("out.txt");  // Output file and the stream
+    // Output stream
+    ofstream OutStream("out.txt");  // Output file and the stream
 
     // Gather the input parameters in the SpinBosonInput struct
     const SpinBosonInput  SBInp("inp.txt");
