@@ -52,7 +52,6 @@ class SpinBoson
        gsl_rng *rng_ptr_x, *rng_ptr_p, *rng_ptr_surf, *rng_ptr_hop, 
                *rng_ptr_force;  
 
-
     public:
 
         // First the constructor and then the destructor

@@ -278,8 +278,14 @@ SpinBoson & DummySB)
     double Dummy_p = p_val;  
     dcomplex Dummy_c[2] = {c_val[0], c_val[1]};
 
-    for (int RK_order = 1; RK_order <= 4; RK_order++){
+    // Initialize the integration sums
+    double sum_x = x_val;
+    double sum_p = p_val;
+    dcomplex sum_c[2] = { c_val[0], c_val[1] };
 
+    // Now take the RK4 micro steps 
+    for (int RK_order = 1; RK_order <= 4; RK_order++)
+    {
         // Set/reset x, p and c in RK
         DummySB.Set_specific_xpc(surface, Dummy_x, Dummy_p, Dummy_c);
 
@@ -298,22 +304,27 @@ SpinBoson & DummySB)
 				
         // Compute Runge-Kutta parameters for x
         double kx = dt * DummySB.dxdt;  // RK parameter (k)
-        x_val    += sum_fac * kx;       // Update x
+        sum_x    += sum_fac * kx;       // Update x
         Dummy_x   = x_val + k_fac * kx; // Get input for the next RK_order
 
         // Compute Runge-Kutta parameters for p
         double kp = dt * DummySB.dpdt;
-        p_val    += sum_fac * kp;
+        sum_p    += sum_fac * kp;
         Dummy_p   = p_val + k_fac * kp;
 
-		// Compute Runge-Kutta parameters for c
+        // Compute Runge-Kutta parameters for c
         for (int j=0; j<2; j++)
         {
-           dcomplex kc = dt * DummySB.dcdt[j];
-           c_val[j]   += sum_fac * kc;
-           Dummy_c[j]  = c_val[j] + k_fac * kc;
-       }
-   }
+            dcomplex kc = dt * DummySB.dcdt[j];
+            sum_c[j]   += sum_fac * kc;
+            Dummy_c[j]  = c_val[j] + k_fac * kc;
+        }
+    }
+    // Wrap it up
+    x_val = sum_x;
+    p_val = sum_p;
+    c_val[1] = sum_c[1];
+    c_val[2] = sum_c[2];
 }
 
 
@@ -324,8 +335,8 @@ double SpinBoson::Diabatic_pop(char well)
     // Theta is related to the eigenvectors
     const double cos_theta = cos( Theta(x_val) );
 
-    // Define populations, and set the population of the current
-    // adiabatic surface to be 1.
+    // Define populations, and set the population of the active
+    // adiabatic surface to be 1 and that of the inactive to be 0.
     double pop_d = 0.0, pop_a[2];
     pop_a[surface]   = 1.0;
     pop_a[1-surface] = 0.0;
@@ -345,16 +356,16 @@ double SpinBoson::Diabatic_pop(char well)
 
 // Print_xpc -- print out the dynamical variables, x, p and c
 //----------------------------------------------------------------------
-void SpinBoson::Print_xpc(ofstream & OutStream){
-
-   OutStream << " sur: " << setw(2) << surface 
-       << "   x: " << fixed << setw(10) << setprecision(3) << x_val 
-       << "   p: " << fixed << setw(10) << setprecision(3) << p_val
-       << "   C: " << scientific << setw(15) << setprecision(3) << c_val[0] 
-       << "  " << scientific << setw(15) << setprecision(3) << c_val[1] 
-       << "  tot pop: " << scientific << setw(15) << setprecision(3) 
-       << sqrt( c_val[0]*conj(c_val[0]) + c_val[1]*conj(c_val[1]) ) 
-       << endl;
+void SpinBoson::Print_xpc(ofstream & OutStream)
+{
+    OutStream << " sur: " << setw(2) << surface 
+    << "   x: " << fixed << setw(10) << setprecision(3) << x_val 
+    << "   p: " << fixed << setw(10) << setprecision(3) << p_val
+    << "   C: " << scientific << setw(15) << setprecision(3) << c_val[0] 
+    << "  " << scientific << setw(15) << setprecision(3) << c_val[1] 
+    << "  tot pop: " << scientific << setw(15) << setprecision(3) 
+    << sqrt( c_val[0]*conj(c_val[0]) + c_val[1]*conj(c_val[1]) ) 
+    << endl;
 }
 		
 // Print_PES --- print the adiabatic energies
@@ -362,7 +373,8 @@ void SpinBoson::Print_xpc(ofstream & OutStream){
 void SpinBoson::Print_PES (ofstream & OutStream){
     Get_PES();
     Get_derivative_coupling();
-    OutStream << x_val << " " << V[0][0] << "  " << V[1][1] << " "<< dc[0][1]<<endl;
+    OutStream << x_val << " " << V[0][0] << "  " << V[1][1] << " "
+    << dc[0][1]<<endl;
 }
 
 
