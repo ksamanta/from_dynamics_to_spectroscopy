@@ -204,8 +204,8 @@ void SpinBoson::Get_time_derivatives(double Random_force){
         {
             sum -= ( i*V[k][j] + dxdt*dc[k][j] + u[k][j] ) * c_val[j];
         }
+	    dcdt[k] = sum;
 	}
-	dcdt[k] = sum;
 }
 		
 
@@ -259,7 +259,6 @@ void SpinBoson::Check_for_hopping(const double dt)
         }
 	}
 }
-}	
 
 	
 // Take_a_Runge_Kutta_step -- Take a 4-th order Runge-Kutta step and 
@@ -376,6 +375,5 @@ void SpinBoson::Print_PES (ofstream & OutStream){
     OutStream << x_val << " " << V[0][0] << "  " << V[1][1] << " "
     << dc[0][1]<<endl;
 }
-
 
 
