@@ -60,19 +60,20 @@ class SpinBoson
        // The other methods
        //--------------------------------------------------------
        void Set_random_xpc();
-       void Set_specific_xpc(int, double, double, dcomplex []);
+       void Set_specific_xpc(int, double, double, dcomplex *);
        void Get_PES();
        void Get_dVdx();
        void Get_derivative_coupling();
        void Get_time_derivatives(double);
        void Check_for_hopping(const double);
        void Take_a_Runge_Kutta_step(const double, SpinBoson&);
-       double Theta(double);
+       double Cos_theta(double);
        double Diabatic_pop(char);
 
        void Print_xpc(ofstream& );
        void Print_PES(ofstream& );
 }; 
+
 
 #endif
 

@@ -51,14 +51,14 @@ void SpinBoson::Set_random_xpc()
     p_val = gsl_ran_gaussian(rng_p.ptr, SIGMA_P);   // Mean is 0
 
     // C_lower and C_upper from C_left=1, C_right=0
-    double theta = Theta(x_val);
-    c_val[0] = dcomplex( sin(theta/2.0), 0.0 );
-    c_val[1] = dcomplex( cos(theta/2.0), 0.0 );
+    double pop_0 = (1.0 - Cos_theta(x_val) )/ 2.0;
+    double pop_1 = (1.0 + Cos_theta(x_val) )/ 2.0;
+    c_val[0] = dcomplex( sqrt(pop_0), 0.0 );
+    c_val[1] = dcomplex( sqrt(pop_1), 0.0);
 
     // surface
-    double probability_lower = sin(theta/2.0) * sin(theta/2.0);
     double rand_num = gsl_rng_uniform(rng_surf.ptr);
-    if ( probability_lower >= rand_num ) 
+    if ( pop_0 >= rand_num ) 
         surface = 0;
     else 
         surface = 1;
@@ -68,7 +68,7 @@ void SpinBoson::Set_random_xpc()
 // Set_specific_xpc --- set specific values of x, p and c
 //----------------------------------------------------------------------
 void SpinBoson::Set_specific_xpc(int Surface, double X, double P,
-dcomplex C[] )
+dcomplex* C )
 {
     surface  = Surface;
     x_val    = X;
@@ -78,13 +78,14 @@ dcomplex C[] )
 }
 
 
-// Theta --- where tan(theta) = 2.0*V12/ (2*M*x_val+EPS0)
+// Cos_theta - get cos(theta), where 
+// tan(theta) = 2.0*V12/ (2*M*x_val+EPS0)
 //----------------------------------------------------------------------
-double SpinBoson::Theta(double x)
+double SpinBoson::Cos_theta(double x)
 {
     double height = V12;
     double base   = M*x + EPS0/2.0;
-    return atan2(height, base);
+    return ( base / sqrt(height*height+base*base) );
 }
 
 		
@@ -157,10 +158,11 @@ void SpinBoson::Get_time_derivatives(double Random_force)
     //..................................................................
 
     // C.2. First, u = (U^dag) * dU/dT
-    double theta = Theta(x_val);
+    double cos_theta = Cos_theta(x_val);
+    double sin_theta = sqrt(1.0 - cos_theta*cos_theta);
     dcomplex iw_over_two(0.0, OMEGA/2.0);
-    dcomplex sw = iw_over_two * sin(theta);
-    dcomplex cw = iw_over_two * cos(theta);
+    dcomplex sw = iw_over_two * sin_theta;
+    dcomplex cw = iw_over_two * cos_theta;
     dcomplex u[2][2] = { {cw, sw}, 
                          {sw,-cw}  };
 
@@ -169,10 +171,10 @@ void SpinBoson::Get_time_derivatives(double Random_force)
     Get_derivative_coupling();
 
     // Now compute dc/dt
-    dcomplex sum;
     for ( int k=0; k<2; k++ )
     {
-        sum = -dcomplex(0.0, 1.0) * c_val[k];  // -(i/hbar)*c_k
+        //-(i/hbar)*V_k*c_k
+        dcomplex sum = -dcomplex(0.0, 1.0)*V[k]*c_val[k]; 
 	    for (int j=0; j<2; j++)
         {
             sum -= (dxdt*dc[k][j] + u[k][j]) * c_val[j];
@@ -294,8 +296,8 @@ SpinBoson & DummySB)
     // Wrap it up
     x_val = sum_x;
     p_val = sum_p;
+    c_val[0] = sum_c[0];
     c_val[1] = sum_c[1];
-    c_val[2] = sum_c[2];
 }
 
 
@@ -303,8 +305,7 @@ SpinBoson & DummySB)
 //----------------------------------------------------------------------
 double SpinBoson::Diabatic_pop(char well)
 {
-    // Theta is related to the eigenvectors
-    const double cos_theta = cos( Theta(x_val) );
+    const double cos_theta = Cos_theta(x_val);
 
     // Define populations, and set the population of the active
     // adiabatic surface to be 1 and that of the inactive to be 0.
@@ -333,10 +334,10 @@ void SpinBoson::Print_xpc(ofstream & OutStream)
     OutStream << " sur: " << setw(2) << surface 
     << "   x: " << fixed << setw(10) << setprecision(3) << x_val 
     << "   p: " << fixed << setw(10) << setprecision(3) << p_val
-    << "   C: " << scientific << setw(15) << setprecision(3) << c_val[0] 
-    << "  " << scientific << setw(15) << setprecision(3) << c_val[1] 
-    << "  tot pop: " << scientific << setw(15) << setprecision(3) 
-    << sqrt( c_val[0]*conj(c_val[0]) + c_val[1]*conj(c_val[1]) ) 
+    << "   C: " << scientific << setw(15) << setprecision(5) << c_val[0] 
+    << "  " << scientific << setw(15) << setprecision(5) << c_val[1] 
+    << " 1- totpop : " << scientific << setw(15) << setprecision(5) 
+    << 1.0 - c_val[0]*conj(c_val[0]) - c_val[1]*conj(c_val[1])  
     << endl;
 }
 		

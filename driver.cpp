@@ -56,6 +56,9 @@ int main()
        // Start the clock now
        for (size_t t=0; t < MAX_STEPS; t++) 
        {
+            //OutStream << "time: " << t << endl;
+            //SB.Print_xpc(OutStream);
+
             // Update the population registers for this time step
             total_pop_left[t]  += SB.Diabatic_pop('L');
             total_pop_right[t] += SB.Diabatic_pop('R');
