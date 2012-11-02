@@ -4,6 +4,8 @@
 	Author: Kousik Samanta // 2012-10-04
 ***********************************************************************
 */
+
+#include <gsl/gsl_randist.h>
 #include "spinboson.h"
 
 
@@ -21,33 +23,11 @@ SpinBoson::SpinBoson(const SpinBosonInput & SBI)
     OMEGA0 = SBI.OMEGA0;
     OMEGA  = SBI.OMEGA;
     M      = OMEGA0 * sqrt(Er/2.0);
-
-	// Choose the random number generator as a pointer
-  	rng_ptr_x     = gsl_rng_alloc(gsl_rng_mt19937);  
-  	rng_ptr_p     = gsl_rng_alloc(gsl_rng_mt19937);  
-  	rng_ptr_surf  = gsl_rng_alloc(gsl_rng_mt19937);  
-  	rng_ptr_hop   = gsl_rng_alloc(gsl_rng_mt19937);  
-  	rng_ptr_force = gsl_rng_alloc(gsl_rng_mt19937);  
-
-	// Seed the generators
-	size_t seed = time(NULL) * getpid();  // seed
-  	gsl_rng_set(rng_ptr_x, seed);           
-  	gsl_rng_set(rng_ptr_p, 2*seed);         
-	gsl_rng_set(rng_ptr_surf, 3*seed);
-	gsl_rng_set(rng_ptr_force, 4*seed);
-	gsl_rng_set(rng_ptr_hop, 5*seed);
 }
 
 
 // The destructor
-SpinBoson::~SpinBoson()
-{
-    gsl_rng_free(rng_ptr_x);
-    gsl_rng_free(rng_ptr_p);
-    gsl_rng_free(rng_ptr_surf);
-    gsl_rng_free(rng_ptr_hop);
-    gsl_rng_free(rng_ptr_force); 
-}
+SpinBoson::~SpinBoson() { }
 
 
 
@@ -67,8 +47,8 @@ void SpinBoson::Set_random_xpc()
     const double MEAN_X  = -M / (OMEGA0*OMEGA0);
 
     // Set the random values of x and p
-    x_val = gsl_ran_gaussian(rng_ptr_x, SIGMA_X) + MEAN_X;
-    p_val = gsl_ran_gaussian(rng_ptr_p, SIGMA_P);   // Mean is 0
+    x_val = gsl_ran_gaussian(rng_x.ptr, SIGMA_X) + MEAN_X;
+    p_val = gsl_ran_gaussian(rng_p.ptr, SIGMA_P);   // Mean is 0
 
     // C_lower and C_upper from C_left=1, C_right=0
     double theta = Theta(x_val);
@@ -77,18 +57,18 @@ void SpinBoson::Set_random_xpc()
 
     // surface
     double probability_lower = sin(theta/2.0) * sin(theta/2.0);
-    double rand_num = gsl_rng_uniform(rng_ptr_surf);
+    double rand_num = gsl_rng_uniform(rng_surf.ptr);
     if ( probability_lower >= rand_num ) 
         surface = 0;
     else 
-    surface = 1;
+        surface = 1;
 }
 
 
 // Set_specific_xpc --- set specific values of x, p and c
 //----------------------------------------------------------------------
 void SpinBoson::Set_specific_xpc(int Surface, double X, double P,
-dcomplex* C)
+dcomplex C[] )
 {
     surface  = Surface;
     x_val    = X;
@@ -102,8 +82,8 @@ dcomplex* C)
 //----------------------------------------------------------------------
 double SpinBoson::Theta(double x)
 {
-    double height = 2.0 * V12;
-    double base   = 2.0 * M * x + EPS0;
+    double height = V12;
+    double base   = M*x + EPS0/2.0;
     return atan2(height, base);
 }
 
@@ -113,14 +93,12 @@ double SpinBoson::Theta(double x)
 //----------------------------------------------------------------------
 void SpinBoson::Get_PES()
 {
-    double first_part = OMEGA0*OMEGA0*x_val*x_val - EPS0;	
-    double second_part = sqrt(  (2.0*M*x_val + EPS0)
-          * (2.0*M*x_val + EPS0)
-          + 4.0*V12*V12	);
+    double first_part = (OMEGA0*OMEGA0*x_val*x_val - EPS0)/2.0;	
+    double second_part = sqrt( (M*x_val+EPS0/2.0)*(M*x_val+EPS0/2.0)
+          + V12*V12	);
 
-    V[0][0] = (first_part - second_part)/2.0;
-    V[1][1] = (first_part + second_part)/2.0;
-    V[0][1] = V[1][0] = 0.0;
+    V[0] = first_part - second_part;
+    V[1] = first_part + second_part;
 }
 
 
@@ -129,9 +107,8 @@ void SpinBoson::Get_PES()
 void SpinBoson::Get_dVdx()
 {
     double first_part = OMEGA0*OMEGA0*x_val;
-    double second_part = 2.0*M*(2.0*M*x_val+EPS0)
-            / sqrt( (2.0*M*x_val+EPS0) * (2.0*M*x_val+EPS0) 
-            + 4.0*V12*V12  );
+    double second_part = M*(M*x_val+EPS0/2.0)
+            / sqrt( (M*x_val+EPS0/2.0)*(M*x_val+EPS0/2.0) + V12*V12 );
 
     dVdx[0] = first_part - second_part;
     dVdx[1] = first_part + second_part;
@@ -143,9 +120,9 @@ void SpinBoson::Get_dVdx()
 //----------------------------------------------------------------------
 void SpinBoson::Get_derivative_coupling()
 {
-    double numer = 2.0 * M * V12;   
-    double denom = (2.0*M*x_val+EPS0) * (2.0*M*x_val+EPS0) 
-            + 4.0*V12*V12;
+    double numer = -M*V12;   
+    double denom = 2.0 * ( (M*x_val+EPS0/2.0)*(M*x_val+EPS0/2.0) 
+            + V12*V12 );
     double d01 = numer / denom;   // Check the sign
 
     dc[0][1] =  d01;
@@ -157,8 +134,8 @@ void SpinBoson::Get_derivative_coupling()
 
 // Get_time_derivatives ----Get dx/dt, dp/dt, dc/dt
 //----------------------------------------------------------------------
-void SpinBoson::Get_time_derivatives(double Random_force){
-
+void SpinBoson::Get_time_derivatives(double Random_force)
+{
     // A. dxdt
     //..................................................................
     dxdt = p_val;   // mass is chosen to be 1.
@@ -179,13 +156,9 @@ void SpinBoson::Get_time_derivatives(double Random_force){
     // C. dc/dt
     //..................................................................
 
-    // C.1. Define complex zero and i (imaginary unit)
-    const dcomplex cZERO(0.0, 0.0);
-    const dcomplex i(0.0, 1.0); // i
-
     // C.2. First, u = (U^dag) * dU/dT
     double theta = Theta(x_val);
-    dcomplex iw_over_two = i * OMEGA / 2.0;
+    dcomplex iw_over_two(0.0, OMEGA/2.0);
     dcomplex sw = iw_over_two * sin(theta);
     dcomplex cw = iw_over_two * cos(theta);
     dcomplex u[2][2] = { {cw, sw}, 
@@ -199,10 +172,10 @@ void SpinBoson::Get_time_derivatives(double Random_force){
     dcomplex sum;
     for ( int k=0; k<2; k++ )
     {
-        sum = cZERO;
+        sum = -dcomplex(0.0, 1.0) * c_val[k];  // -(i/hbar)*c_k
 	    for (int j=0; j<2; j++)
         {
-            sum -= ( i*V[k][j] + dxdt*dc[k][j] + u[k][j] ) * c_val[j];
+            sum -= (dxdt*dc[k][j] + u[k][j]) * c_val[j];
         }
 	    dcdt[k] = sum;
 	}
@@ -240,14 +213,13 @@ void SpinBoson::Check_for_hopping(const double dt)
     Get_PES();  // Get V(i,j)
 
     // Check for hopping against a random number
-    double rand_num = gsl_rng_uniform(rng_ptr_hop);
+    double rand_num = gsl_rng_uniform(rng_hop.ptr);
 
     if (g_kj > rand_num) 
     {
-        double PE_gain = V[other_surface][other_surface] 
-                       - V[surface][surface];
+        double PE_gain = V[other_surface] - V[surface];
         double KE_loss = PE_gain;
-        double KE_new = p_val * p_val / 2.0 - KE_loss;
+        double KE_new = p_val*p_val/2.0 - KE_loss;
 
         // Update the momentum in case a hop is really feasible
         if ( (surface==0 && KE_new + OMEGA >= 0.0) 
@@ -270,7 +242,7 @@ SpinBoson & DummySB)
     // Generate a random force for the Langevin-type dynamics
     // (it's the same for all RK micro-steps)
     double sigma_force = sqrt(2.0*GAMMA*kT/dt);
-    double random_force = gsl_ran_gaussian(rng_ptr_force, sigma_force);
+    double random_force = gsl_ran_gaussian(rng_force.ptr, sigma_force);
 
     // The initial dynamic variables for DummySB
     double Dummy_x = x_val;
@@ -336,6 +308,7 @@ double SpinBoson::Diabatic_pop(char well)
 
     // Define populations, and set the population of the active
     // adiabatic surface to be 1 and that of the inactive to be 0.
+    // (Suffix "d" means diabatic, and suffix "a" adiabatic adiabatic)
     double pop_d = 0.0, pop_a[2];
     pop_a[surface]   = 1.0;
     pop_a[1-surface] = 0.0;
@@ -372,7 +345,7 @@ void SpinBoson::Print_xpc(ofstream & OutStream)
 void SpinBoson::Print_PES (ofstream & OutStream){
     Get_PES();
     Get_derivative_coupling();
-    OutStream << x_val << " " << V[0][0] << "  " << V[1][1] << " "
+    OutStream << x_val << " " << V[0] << "  " << V[1] << " "
     << dc[0][1]<<endl;
 }
 

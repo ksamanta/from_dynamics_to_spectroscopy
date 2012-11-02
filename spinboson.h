@@ -12,8 +12,7 @@
 #include<iomanip>
 #include<fstream>
 #include<complex>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
+#include "rng.h"
 #include "spinbosoninput.h"
 
 using namespace std;
@@ -42,15 +41,14 @@ class SpinBoson
         //--------------------------------------------------------
 
         // V ==  PES, dVDx == dV/dx, dc == derivative coupling
-        double V[2][2], dVdx[2], dc[2][2];  
+        double V[2], dVdx[2], dc[2][2];  
 
         // Time derivatives
         double dxdt, dpdt;
         dcomplex dcdt[2];
 
-       // Pointers for the random number generators (rng)
-       gsl_rng *rng_ptr_x, *rng_ptr_p, *rng_ptr_surf, *rng_ptr_hop, 
-               *rng_ptr_force;  
+       // Structs for the random number generators (see rng.h)
+       RNG rng_x, rng_p, rng_surf, rng_hop, rng_force;  
 
     public:
 

@@ -1,7 +1,7 @@
 /*
 **********************************************************************
 
-    This is the driver function to run the Tully-style FSSH 
+    This is the driver program to run the Tully-style FSSH 
     trajectories for the Spin-Boson system.
 
     Author: Kousik Samanta 2012-10-25
