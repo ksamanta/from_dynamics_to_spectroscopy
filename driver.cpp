@@ -50,14 +50,12 @@ int main()
     {
         // Generate starting position, x0 and momentum, p0
         SB.Set_random_xpc();
-        OutStream << "Start of traj# " << traj << endl;
-        SB.Print_xpc(OutStream);
+        OutStream << "--> Start of traj# " << traj << endl;
 
        // Start the clock now
        for (size_t t=0; t < MAX_STEPS; t++) 
        {
-            //OutStream << "time: " << t << endl;
-            //SB.Print_xpc(OutStream);
+            SB.Footprints(t, OutStream);
 
             // Update the population registers for this time step
             total_pop_left[t]  += SB.Diabatic_pop('L');
@@ -71,9 +69,6 @@ int main()
             SB.Take_a_Runge_Kutta_step(DT, DummySB);
         }
 
-        // Print the endpoints of the trajectory
-        OutStream << "End of traj# " << traj << endl;
-        SB.Print_xpc(OutStream);
 
         // print the average populations in increments of 100 trajectories
         // as well as after all the trajectories are done

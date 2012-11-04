@@ -1,6 +1,6 @@
 /*
 ***********************************************************************
-	RNG.h -- A random number generators struct
+	RNG.h -- A random number generator struct
     It creates and seeds a random number generator. 
     Defing it as "RNG rng;"  and then access the pointer as
     pointer as RNG.ptr (this is what you need to use GSL random number
@@ -20,9 +20,10 @@ using namespace std;
 
 struct RNG
 {
+    // Define the pointer for the random number generator
     gsl_rng *ptr;
  
-    // The constructor
+    // The constructor for the struct
     RNG()
     {
         ptr = gsl_rng_alloc( gsl_rng_mt19937 );  // allocation

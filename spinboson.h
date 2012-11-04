@@ -44,11 +44,12 @@ class SpinBoson
         double V[2], dVdx[2], dc[2][2];  
 
         // Time derivatives
-        double dxdt, dpdt;
-        dcomplex dcdt[2];
+        double x_dot, p_dot;
+        dcomplex c_dot[2];
 
-       // Structs for the random number generators (see rng.h)
-       RNG rng_x, rng_p, rng_surf, rng_hop, rng_force;  
+        // Struct instances for the random number generators (rng.h).
+        // All but the last are for Gaussian distributions.
+        RNG rng_x, rng_p, rng_force, rng_uniform;
 
     public:
 
@@ -67,10 +68,12 @@ class SpinBoson
        void Get_time_derivatives(double);
        void Check_for_hopping(const double);
        void Take_a_Runge_Kutta_step(const double, SpinBoson&);
-       double Cos_theta(double);
+
+       double Theta();
        double Diabatic_pop(char);
 
-       void Print_xpc(ofstream& );
+       double Get_x(){return x_val; };
+       void Footprints(size_t, ofstream& );
        void Print_PES(ofstream& );
 }; 
 
