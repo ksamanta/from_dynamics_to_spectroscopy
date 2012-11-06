@@ -53,8 +53,10 @@ void SpinBoson::Set_random_xpc()
     // C_lower and C_upper from C_left=1, C_right=0
     double pop_0 = (1.0 - cos( Theta() ) )/ 2.0;
     double pop_1 = 1.0 - pop_0;
-    c_val[0] = dcomplex( sqrt(pop_0), 0.0 );
-    c_val[1] = dcomplex( sqrt(pop_1), 0.0);
+
+    c_val.clear();
+    c_val.push_back( dcomplex( sqrt(pop_0), 0.0) );
+    c_val.push_back( dcomplex( sqrt(pop_1), 0.0) );
 
     // surface
     double rand_num = gsl_rng_uniform(rng_uniform.ptr);
@@ -67,14 +69,13 @@ void SpinBoson::Set_random_xpc()
 
 // Set_specific_xpc --- set specific values of x, p and c
 //----------------------------------------------------------------------
-void SpinBoson::Set_specific_xpc(int Surface, double X, double P,
-dcomplex* C )
+void SpinBoson::Set_specific_xpc(int& Surface, double& X, double& P,
+complex_vec& C)
 {
     surface  = Surface;
-    x_val    = X;
-    p_val    = P;
-    c_val[0] = C[0];
-    c_val[1] = C[1];
+    x_val = X;
+    p_val = P;
+    c_val = C;
 }
 
 
@@ -132,7 +133,7 @@ void SpinBoson::Get_derivative_coupling()
 
 // Get_time_derivatives ----Get dx/dt, dp/dt, dc/dt
 //----------------------------------------------------------------------
-void SpinBoson::Get_time_derivatives(double Random_force)
+void SpinBoson::Get_time_derivatives(const double& Random_force)
 {
     // A. dx/dt
     //..................................................................
@@ -166,6 +167,8 @@ void SpinBoson::Get_time_derivatives(double Random_force)
     Get_PES();
     Get_derivative_coupling();
 
+    c_dot.clear();
+
     // Now compute dc/dt
     for ( int k=0; k<2; k++ )
     {
@@ -174,7 +177,7 @@ void SpinBoson::Get_time_derivatives(double Random_force)
         {
             sum -= (x_dot*dc[k][j] + u[k][j]) * c_val[j];
         }
-	    c_dot[k] = sum;
+	    c_dot.push_back(sum);
 	}
 }
 		
@@ -183,7 +186,7 @@ void SpinBoson::Get_time_derivatives(double Random_force)
 // Check_for_hopping -- Check if a hopping (FSSH style) is possible,
 // and if it is, then do hop (i.e., change the surface)
 //----------------------------------------------------------------------
-void SpinBoson::Check_for_hopping(const double dt)
+void SpinBoson::Check_for_hopping(const double& dt)
 {	
     // The current and new (to jump on to) surfaces
     int k = surface;      // current surface
@@ -233,8 +236,8 @@ void SpinBoson::Check_for_hopping(const double dt)
 // NOTE: You need to initialize a dummy SpinBoson instance, DummySB,
 // (one of the arguments to be passed) BEFORE you can use this method)
 //--------------------------------------------------------------------
-void SpinBoson::Take_a_Runge_Kutta_step(const double dt, 
-SpinBoson & DummySB)
+void SpinBoson::Take_a_Runge_Kutta_step(const double& dt, 
+SpinBoson& DummySB, complex_vec& dummy_c, complex_vec& sum_c)
 {		
     // Generate a random force for the Langevin-type dynamics
     // (it's the same for all RK micro-steps corresponding to one 
@@ -244,20 +247,20 @@ SpinBoson & DummySB)
         gsl_ran_gaussian(rng_force.ptr, sigma_force);
 
     // The initial dynamic variables for DummySB
-    double Dummy_x = x_val;
-    double Dummy_p = p_val;  
-    dcomplex Dummy_c[2] = {c_val[0], c_val[1]};
+    double dummy_x = x_val;
+    double dummy_p = p_val;  
+    dummy_c = c_val;
 
     // Initialize the integration sums
     double sum_x = x_val;
     double sum_p = p_val;
-    dcomplex sum_c[2] = { c_val[0], c_val[1] };
+    sum_c = c_val;
 
     // Now take the RK4 micro steps 
     for (int RK_order = 1; RK_order <= 4; RK_order++)
     {
         // Set/reset x, p and c in RK
-        DummySB.Set_specific_xpc(surface, Dummy_x, Dummy_p, Dummy_c);
+        DummySB.Set_specific_xpc(surface, dummy_x, dummy_p, dummy_c);
 
         // Get the time derivates
         DummySB.Get_time_derivatives(random_force);
@@ -275,26 +278,25 @@ SpinBoson & DummySB)
         // Compute Runge-Kutta parameters for x
         double kx = dt * DummySB.x_dot;  // RK parameter (k)
         sum_x    += sum_fac * kx;       // Update x
-        Dummy_x   = x_val + k_fac * kx; // Get input for the next RK_order
+        dummy_x   = x_val + k_fac * kx; // Get input for the next RK_order
 
         // Compute Runge-Kutta parameters for p
         double kp = dt * DummySB.p_dot;
         sum_p    += sum_fac * kp;
-        Dummy_p   = p_val + k_fac * kp;
+        dummy_p   = p_val + k_fac * kp;
 
         // Compute Runge-Kutta parameters for c
         for (int j=0; j<2; j++)
         {
             dcomplex kc = dt * DummySB.c_dot[j];
             sum_c[j]   += sum_fac * kc; 
-            Dummy_c[j]  = c_val[j] + k_fac * kc;
+            dummy_c[j]  = c_val[j] + k_fac * kc;
         }
     }
     // Return the integrations sums
     x_val = sum_x;
     p_val = sum_p;
-    c_val[0] = sum_c[0];
-    c_val[1] = sum_c[1];
+    c_val = sum_c;
 }
 
 
@@ -327,8 +329,8 @@ double SpinBoson::Diabatic_pop(char well)
 
 // Footprints -- print out the variables at the current time step
 //--------------------------------------------------------------------
-void SpinBoson::Footprints(string label, size_t index, 
-ofstream & OutStream)
+void SpinBoson::Footprints(string label, size_t& index, 
+ofstream& OutStream)
 {
     OutStream << setw(8) << label << "   "
     << setw(8) << index << "   " 

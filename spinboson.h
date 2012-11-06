@@ -12,6 +12,7 @@
 #include<iomanip>
 #include<fstream>
 #include<complex>
+#include<vector>
 #include "rng.h"
 #include "spinbosoninput.h"
 
@@ -19,6 +20,7 @@ using namespace std;
 
 // Get a shorthand notation for double complex
 typedef complex<double> dcomplex;	
+typedef vector< complex<double> > complex_vec;
 
 
 // The SpinBoson class
@@ -34,7 +36,7 @@ class SpinBoson
         //--------------------------------------------------------
         int surface;         // surface index 
         double x_val, p_val; // The dynamical variables x and p
-        dcomplex c_val[2];   // coefs
+        complex_vec c_val;   // coefs 
 
 
         // Other variables (computed by the methods in the class)
@@ -45,7 +47,7 @@ class SpinBoson
 
         // Time derivatives
         double x_dot, p_dot;
-        dcomplex c_dot[2];
+        complex_vec c_dot;
 
         // Struct instances for the random number generators (rng.h).
         // All but the last are for Gaussian distributions.
@@ -61,19 +63,20 @@ class SpinBoson
        // The other methods
        //--------------------------------------------------------
        void Set_random_xpc();
-       void Set_specific_xpc(int, double, double, dcomplex *);
+       void Set_specific_xpc(int&, double&, double&, complex_vec&);
        void Get_PES();
        void Get_dVdx();
        void Get_derivative_coupling();
-       void Get_time_derivatives(double);
-       void Check_for_hopping(const double);
-       void Take_a_Runge_Kutta_step(const double, SpinBoson&);
+       void Get_time_derivatives(const double&);
+       void Check_for_hopping(const double&);
+       void Take_a_Runge_Kutta_step(const double&, SpinBoson&,
+            complex_vec&, complex_vec&);
 
        double Theta();
        double Diabatic_pop(char);
 
        double Get_x(){return x_val; };
-       void Footprints(string, size_t, ofstream& );
+       void Footprints(string, size_t&, ofstream& );
        void Print_PES(ofstream& );
 }; 
 

@@ -32,13 +32,21 @@ int main()
     // Define the SpinBoson instance SB and a dummy instance, DummySB
     SpinBoson SB(SBInp), DummySB(SBInp);
 
+    // Some dummy vecotrs
+    complex_vec dummy_c(2), sum_c(2);
+
     // Take a look at the PES first
     //------------------------------------------------------------
     ofstream PESStream("pes.txt");  
-    dcomplex c_in[2] = { dcomplex(1.0,0.0), dcomplex(0.0,0.0)};
+    complex_vec c_in;
+    c_in.push_back( dcomplex(1.0,0.0) );
+    c_in.push_back( dcomplex(0.0,0.0) );
     for (long j=-6000; j< 6000; j++)
     {
-        SB.Set_specific_xpc(0, double(j), 20.0, c_in);
+        int surface=0;
+        double x = double(j);
+        double p = 20.0;
+        SB.Set_specific_xpc(surface, x, p, c_in);
         SB.Print_PES(PESStream);
 	}
     PESStream.close();
@@ -70,7 +78,7 @@ int main()
 
             // Take a Runge-Kutta step and update the dyanmical
             // variables
-            SB.Take_a_Runge_Kutta_step(DT, DummySB);
+            SB.Take_a_Runge_Kutta_step(DT, DummySB, dummy_c, sum_c);
         }
         // Print the endpoints
         SB.Footprints("End", traj, OutStream);
