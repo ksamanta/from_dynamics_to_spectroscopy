@@ -293,7 +293,7 @@ SpinBoson& DummySB, complex_vec& dummy_c, complex_vec& sum_c)
             dummy_c[j]  = c_val[j] + k_fac * kc;
         }
     }
-    // Return the integrations sums
+    // Return the integration sums
     x_val = sum_x;
     p_val = sum_p;
     c_val = sum_c;

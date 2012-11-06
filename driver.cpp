@@ -81,7 +81,7 @@ int main()
             SB.Take_a_Runge_Kutta_step(DT, DummySB, dummy_c, sum_c);
         }
         // Print the endpoints
-        SB.Footprints("End", traj, OutStream);
+        SB.Footprints("End  ", traj, OutStream);
 
 
         // print the average populations in increments of 100 trajectories
