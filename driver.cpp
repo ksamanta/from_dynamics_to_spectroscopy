@@ -17,8 +17,6 @@ int main()
 {
     // Define the variables first
     //------------------------------------------------------------
-    // Output stream
-    ofstream OutStream("out.txt");  // Output file and the stream
 
     // Gather the input parameters in the SpinBosonInput struct
     const SpinBosonInput  SBInp("inp.txt");
@@ -31,7 +29,7 @@ int main()
     vector<double> total_pop_right(MAX_STEPS+1);
 
 
-    // Define the SpinBoson instance SB and a temp instance DummySB
+    // Define the SpinBoson instance SB and a dummy instance, DummySB
     SpinBoson SB(SBInp), DummySB(SBInp);
 
     // Take a look at the PES first
@@ -43,19 +41,25 @@ int main()
         SB.Set_specific_xpc(0, double(j), 20.0, c_in);
         SB.Print_PES(PESStream);
 	}
+    PESStream.close();
 
     // Now start the simulation
     //------------------------------------------------------------
+
+    // Output stream
+    ofstream OutStream("out.txt");  // Output file and the stream
+
     for (size_t traj=1; traj <= MAX_TRAJ; traj++)
     {
         // Generate starting position, x0 and momentum, p0
         SB.Set_random_xpc();
-        OutStream << "--> Start of traj# " << traj << endl;
+ 
+        //Print the details of the current time-step as a "footprint"
+        SB.Footprints("Start", traj, OutStream); 
 
        // Start the clock now
        for (size_t t=0; t < MAX_STEPS; t++) 
        {
-            SB.Footprints(t, OutStream);
 
             // Update the population registers for this time step
             total_pop_left[t]  += SB.Diabatic_pop('L');
@@ -68,11 +72,13 @@ int main()
             // variables
             SB.Take_a_Runge_Kutta_step(DT, DummySB);
         }
+        // Print the endpoints
+        SB.Footprints("End", traj, OutStream);
 
 
         // print the average populations in increments of 100 trajectories
         // as well as after all the trajectories are done
-        if ( traj%100 == 0 || traj == MAX_TRAJ)
+        if ( traj%500 == 0 || traj == MAX_TRAJ)
         {
             ofstream PopStream("pop.txt");  // open/reopen for writing
             PopStream << "# Av pop for " << traj << " trajectories:\n";
@@ -80,7 +86,7 @@ int main()
             for ( size_t t=0; t < MAX_STEPS; t++ )
             {
                 PopStream << scientific << setw(10) << t << "  " 
-                << scientific << setw(15) << setprecision(5) 
+                << scientific << setw(20) << setprecision(8) 
                 << total_pop_left[t]/double(traj) << "   " 
                 << scientific << setw(15) << setprecision(5) 
                 << total_pop_right[t]/double(traj) << endl;
@@ -88,6 +94,7 @@ int main()
             PopStream.close();
         } 
     }
+    OutStream.close();
 	return 0;
 }
 

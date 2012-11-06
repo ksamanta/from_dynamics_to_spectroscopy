@@ -327,14 +327,19 @@ double SpinBoson::Diabatic_pop(char well)
 
 // Footprints -- print out the variables at the current time step
 //--------------------------------------------------------------------
-void SpinBoson::Footprints(size_t time_step, ofstream & OutStream)
+void SpinBoson::Footprints(string label, size_t index, 
+ofstream & OutStream)
 {
-    OutStream << " "
-    << setw(8) << time_step << "   " << setw(12) 
-    <<setprecision(5)<< scientific<< x_val << " " << p_val << "   "
-    << real(c_val[0]) << " " << real(c_val[0]) << "   "
-    << real(c_val[1]) << " " << real(c_val[1]) << "   "
-    << real(1.0-c_val[0]*conj(c_val[0])-c_val[1]*conj(c_val[1]))
+    OutStream << setw(8) << label << "   "
+    << setw(8) << index << "   " 
+    << setprecision(5) << scientific 
+    << setw(12) << x_val << " " 
+    << setw(12) << p_val << "   "
+    << setw(12) << real(c_val[0]) << " " 
+    << setw(12) << imag(c_val[0]) << "   "
+    << setw(12) << real(c_val[1]) << " " 
+    << setw(12) << imag(c_val[1]) << "   "
+    << setw(12) << real(1.0-c_val[0]*conj(c_val[0])-c_val[1]*conj(c_val[1]))
     << "   " << setw(2) << surface << endl;
 }
 		

@@ -73,7 +73,7 @@ class SpinBoson
        double Diabatic_pop(char);
 
        double Get_x(){return x_val; };
-       void Footprints(size_t, ofstream& );
+       void Footprints(string, size_t, ofstream& );
        void Print_PES(ofstream& );
 }; 
 
