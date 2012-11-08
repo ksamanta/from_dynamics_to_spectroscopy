@@ -25,6 +25,20 @@ SpinBoson::SpinBoson(const SpinBosonInput & SBI)
     M      = OMEGA0 * sqrt(Er/2.0);
 }
 
+// The copy constructor
+SpinBoson::SpinBoson(const SpinBoson & SB_original)
+{
+    // Defin the SpinBoson constants
+    Er     = SB_original.Er;
+    kT     = SB_original.kT;
+    EPS0   = SB_original.EPS0;
+    V12	   = SB_original.V12;
+    GAMMA  = SB_original.GAMMA;
+    OMEGA0 = SB_original.OMEGA0;
+    OMEGA  = SB_original.OMEGA;
+    M      = SB_original.M;
+}
+
 
 // The destructor
 SpinBoson::~SpinBoson() { }
@@ -327,7 +341,7 @@ double SpinBoson::Diabatic_pop(char well)
 
 // Footprints -- print out the variables at the current time step
 //--------------------------------------------------------------------
-void SpinBoson::Footprints(string label, size_t index, 
+void SpinBoson::Footprints(string label, ULONG index, 
 ofstream & OutStream)
 {
     OutStream << setw(8) << label << "   "

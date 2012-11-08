@@ -19,6 +19,7 @@ using namespace std;
 
 // Get a shorthand notation for double complex
 typedef complex<double> dcomplex;	
+typedef unsigned long ULONG;
 
 
 // The SpinBoson class
@@ -53,9 +54,10 @@ class SpinBoson
 
     public:
 
-        // First the constructor and then the destructor
+        // Constructor, copy constructor and destructor
         //--------------------------------------------------------
         SpinBoson(const SpinBosonInput&);
+        SpinBoson(const SpinBoson&); 
         ~SpinBoson();						
 
        // The other methods
@@ -73,7 +75,7 @@ class SpinBoson
        double Diabatic_pop(char);
 
        double Get_x(){return x_val; };
-       void Footprints(string, size_t, ofstream& );
+       void Footprints(string, ULONG, ofstream& );
        void Print_PES(ofstream& );
 }; 
 

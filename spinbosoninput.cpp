@@ -126,7 +126,7 @@ SpinBosonInput::SpinBosonInput(ifstream &InpStream)
     {
 
         // Check if an assignment op ('=' or ':' ) is in the line
-        size_t loc_of_assignment_op = line.find_first_of("=:");
+        unsigned long loc_of_assignment_op = line.find_first_of("=:");
         if ( loc_of_assignment_op != string::npos ) 
         {
             string key  = line.substr(0, loc_of_assignment_op);

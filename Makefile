@@ -4,16 +4,17 @@
 # Author: Kousik Samanta (2012-11-02)
 #==============================================================
 
-CPP=g++
+CPP=/data/home/kousik/local/bin/g++
 EXE=driver.x
-OPT=-O3 -mtune=opteron -m64
+OPT=-O2 -mtune=opteron -m64
 WARN=-Wall -Wextra -pedantic 
 DEBUG=-v -time -g -H -Q 
 SOURCE=driver.cpp spinbosoninput.cpp spinboson.cpp
 GSL=/data/home/kousik/GSL
+OMP=-fopenmp
 
 $(EXE): $(SOURCE)
-	$(CPP) -o $(EXE) $(SOURCE)  \
+	$(CPP) $(OMP) -o $(EXE) $(SOURCE)  \
 		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas \
 		$(OPT) $(WARN) 
 	@echo " "

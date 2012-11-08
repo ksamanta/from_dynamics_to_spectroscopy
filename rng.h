@@ -14,6 +14,7 @@
 #define RNG_H_
 
 #include<iostream>
+#include <unistd.h>
 #include <gsl/gsl_rng.h>
 
 using namespace std;
@@ -27,7 +28,7 @@ struct RNG
     RNG()
     {
         ptr = gsl_rng_alloc( gsl_rng_mt19937 );  // allocation
-        size_t seed = time(NULL) * getpid();     // the seed
+        long seed = time(NULL) * getpid();     // the seed
         gsl_rng_set(ptr, seed);                   // seed is set
      }
 
