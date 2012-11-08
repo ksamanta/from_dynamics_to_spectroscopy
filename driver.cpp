@@ -11,6 +11,7 @@
 
 #include "spinboson.h"
 #include<vector>
+#include<omp.h>
 using namespace std;
 
 int main()
@@ -51,9 +52,14 @@ int main()
     // Output stream
     ofstream OutStream("out.txt");  // Output file and the stream
 
-    #pragma  omp parallel for firstprivate(SB, DummySB) 
+    #pragma omp parallel for firstprivate(SB, DummySB) 
     for (ULONG traj=1; traj <= MAX_TRAJ; traj++)
-    {
+    {  
+        int tid = omp_get_thread_num();
+        ostringstream oss; 
+        oss << " traj " << traj << " tid: " << tid << endl;
+        OutStream << oss.str() << endl;
+
         // Generate starting position, x0 and momentum, p0
         SB.Set_random_xpc();
  
@@ -66,8 +72,8 @@ int main()
             // Update the population registers for this time step
             // pack the 2d array into a 1-d array
             ULONG traj_t = (traj-1) * MAX_TRAJ + t; 
-            pop_left[traj_t]  += SB.Diabatic_pop('L');
-            pop_right[traj_t] += SB.Diabatic_pop('R');
+            pop_left[traj_t]  = SB.Diabatic_pop('L');
+            pop_right[traj_t] = SB.Diabatic_pop('R');
 
             // Check if hopping is feasible
             SB.Check_for_hopping(DT);
@@ -88,8 +94,6 @@ int main()
         double tot_pop_left = 0.0;
         double tot_pop_right = 0.0;
 
-        #pragma omp parallel for \
-        reduction(+: tot_pop_left, tot_pop_right)
         for (ULONG traj=1; traj <= MAX_TRAJ; traj++)
         {
             ULONG traj_t = (traj-1) * MAX_TRAJ + t; 
