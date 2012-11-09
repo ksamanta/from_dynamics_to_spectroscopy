@@ -50,7 +50,7 @@ class SpinBoson
 
         // Struct instances for the random number generators (rng.h).
         // All but the last are for Gaussian distributions.
-        RNG rng_x, rng_p, rng_force, rng_uniform;
+        RNG rng_force, rng_uniform;
 
     public:
 
@@ -62,8 +62,8 @@ class SpinBoson
 
        // The other methods
        //--------------------------------------------------------
-       void Set_random_xpc();
-       void Set_specific_xpc(int, double, double, dcomplex *);
+       void Init_vars(int, double, double, dcomplex *);
+       void Init_vars(RNG&, RNG&, RNG&);
        void Get_PES();
        void Get_dVdx();
        void Get_derivative_coupling();

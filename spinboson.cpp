@@ -25,7 +25,6 @@ SpinBoson::SpinBoson(const SpinBosonInput & SBI)
     M      = OMEGA0 * sqrt(Er/2.0);
 }
 
-// The copy constructor
 SpinBoson::SpinBoson(const SpinBoson & SB_original)
 {
     // Defin the SpinBoson constants
@@ -49,23 +48,32 @@ SpinBoson::~SpinBoson() { }
 //======================================================================
 
 
-// Set_random_xpc --- set random values of x and p 
-// (x is taken from a Boltzmann distribution of energy and p is from 
-// a Maxwell-Boltzmann // distribution of p vectors)
+// Init_vars --- set specific values of x, p, and surface
 //----------------------------------------------------------------------
-void SpinBoson::Set_random_xpc()
+void SpinBoson::Init_vars(int Surface, double X, double P,
+dcomplex* C )
 {
-    // Parameters for equilibrium position and moentum distributions
+    surface  = Surface;
+    x_val    = X;
+    p_val    = P;
+    c_val[0] = C[0];
+    c_val[1] = C[1];
+}
+
+//overload
+void SpinBoson::Init_vars(RNG& rng_x, RNG& rng_p, RNG& rng_uniform)
+{
     const double SIGMA_X = sqrt(kT)/OMEGA0;
     const double SIGMA_P = sqrt(kT);
     const double MEAN_X  = -M / (OMEGA0*OMEGA0);
-
+    
     // Set the random values of x and p
     x_val = gsl_ran_gaussian(rng_x.ptr, SIGMA_X) + MEAN_X;
     p_val = gsl_ran_gaussian(rng_p.ptr, SIGMA_P);   // Mean is 0
 
     // C_lower and C_upper from C_left=1, C_right=0
-    double pop_0 = (1.0 - cos( Theta() ) )/ 2.0;
+    double theta = Theta();
+    double pop_0 = (1.0 - cos(theta) ) / 2.0;
     double pop_1 = 1.0 - pop_0;
     c_val[0] = dcomplex( sqrt(pop_0), 0.0 );
     c_val[1] = dcomplex( sqrt(pop_1), 0.0);
@@ -76,19 +84,6 @@ void SpinBoson::Set_random_xpc()
         surface = 0;
     else 
         surface = 1;
-}
-
-
-// Set_specific_xpc --- set specific values of x, p and c
-//----------------------------------------------------------------------
-void SpinBoson::Set_specific_xpc(int Surface, double X, double P,
-dcomplex* C )
-{
-    surface  = Surface;
-    x_val    = X;
-    p_val    = P;
-    c_val[0] = C[0];
-    c_val[1] = C[1];
 }
 
 
@@ -271,7 +266,7 @@ SpinBoson & DummySB)
     for (int RK_order = 1; RK_order <= 4; RK_order++)
     {
         // Set/reset x, p and c in RK
-        DummySB.Set_specific_xpc(surface, Dummy_x, Dummy_p, Dummy_c);
+        DummySB.Init_vars(surface, Dummy_x, Dummy_p, Dummy_c);
 
         // Get the time derivates
         DummySB.Get_time_derivatives(random_force);

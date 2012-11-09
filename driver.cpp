@@ -10,8 +10,9 @@
 */
 
 #include "spinboson.h"
-#include<vector>
-#include<omp.h>
+#include <vector>
+#include <omp.h>
+
 using namespace std;
 
 int main()
@@ -25,15 +26,19 @@ int main()
     const ULONG MAX_TRAJ = SBInp.MAX_TRAJ;
     const double DT = SBInp.DT;
 
-    // Initialize the population registers with zero pop
-    // Leave enough room to store all the time steps on each
-    // trajectories
-    vector<double> pop_left(MAX_TRAJ*MAX_STEPS);
-    vector<double> pop_right(MAX_TRAJ*MAX_STEPS);
-
 
     // Define the SpinBoson instance SB and a dummy instance, DummySB
     SpinBoson SB(SBInp), DummySB(SBInp);
+
+    // Define random number generators to generate initial x, p and c
+    RNG rng_x, rng_p, rng_uniform;
+
+    // Define registers to hold populations (initialized to zero)
+    vector<double> partial_pop_left(MAX_STEPS);
+    vector<double> partial_pop_right(MAX_STEPS);
+    vector<double> total_pop_left(MAX_STEPS);
+    vector<double> total_pop_right(MAX_STEPS);
+
 
     // Take a look at the PES first
     //------------------------------------------------------------
@@ -41,10 +46,11 @@ int main()
     dcomplex c_in[2] = { dcomplex(1.0,0.0), dcomplex(0.0,0.0)};
     for (ULONG j=-6000; j< 6000; j++)
     {
-        SB.Set_specific_xpc(0, double(j), 20.0, c_in);
+        SB.Init_vars(0, double(j), 20.0, c_in);
         SB.Print_PES(PESStream);
 	}
     PESStream.close();
+
 
     // Now start the simulation
     //------------------------------------------------------------
@@ -52,7 +58,9 @@ int main()
     // Output stream
     ofstream OutStream("out.txt");  // Output file and the stream
 
-    #pragma omp parallel for firstprivate(SB, DummySB) 
+    #pragma omp parallel firstprivate(partial_pop_left, partial_pop_right) 
+
+    #pragma omp for firstprivate(SB, DummySB) 
     for (ULONG traj=1; traj <= MAX_TRAJ; traj++)
     {  
         int tid = omp_get_thread_num();
@@ -60,20 +68,17 @@ int main()
         oss << " traj " << traj << " tid: " << tid << endl;
         OutStream << oss.str() << endl;
 
-        // Generate starting position, x0 and momentum, p0
-        SB.Set_random_xpc();
+        // Set the random initial variables
+        SB.Init_vars(rng_x, rng_p, rng_uniform);
  
-        //Print the details of the current time-step as a "footprint"
-        //SB.Footprints("Start", traj, OutStream); 
 
         // Start the clock now
         for (ULONG t=0; t < MAX_STEPS; t++) 
         {
-            // Update the population registers for this time step
-            // pack the 2d array into a 1-d array
-            ULONG traj_t = (traj-1) * MAX_TRAJ + t; 
-            pop_left[traj_t]  = SB.Diabatic_pop('L');
-            pop_right[traj_t] = SB.Diabatic_pop('R');
+            // Add up the contributions to the total population due to
+            // the trajectories handled by the current thread 
+            total_pop_left[t]  += SB.Diabatic_pop('L');
+            total_pop_right[t] += SB.Diabatic_pop('R');
 
             // Check if hopping is feasible
             SB.Check_for_hopping(DT);
@@ -82,8 +87,16 @@ int main()
             // variables
             SB.Take_a_Runge_Kutta_step(DT, DummySB);
         }
-        // Print the endpoints
-        //SB.Footprints("End", traj, OutStream);
+
+        // Now add up the contributions from different threads
+        // 'atomically' (in order to avoids the "race condiiton")
+        for (ULONG t=0; t < MAX_STEPS; t++)
+        {
+            #pragma omp atomic
+            total_pop_left[t]  += partial_pop_left[t];
+            #pragma omp atomic
+            total_pop_right[t] += partial_pop_right[t];
+        }
     }
 
     ofstream PopStream("pop.txt");  // open/reopen for writing
@@ -91,21 +104,11 @@ int main()
 
     for ( ULONG t=0; t < MAX_STEPS; t++ )
     {
-        double tot_pop_left = 0.0;
-        double tot_pop_right = 0.0;
-
-        for (ULONG traj=1; traj <= MAX_TRAJ; traj++)
-        {
-            ULONG traj_t = (traj-1) * MAX_TRAJ + t; 
-            tot_pop_left += pop_left[traj_t];
-            tot_pop_right += pop_right[traj_t];
-        }
- 
         PopStream << scientific << setw(10) << t << "  " 
         << scientific << setw(20) << setprecision(8) 
-        << tot_pop_left/double(MAX_TRAJ) << "   " 
+            << total_pop_left[t]/double(MAX_TRAJ) << "   " 
         << scientific << setw(15) << setprecision(5) 
-        << tot_pop_right/double(MAX_TRAJ) << endl;
+            << total_pop_right[t]/double(MAX_TRAJ) << endl;
     }
     PopStream.close();
     OutStream.close();

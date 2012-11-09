@@ -14,7 +14,7 @@
 #define RNG_H_
 
 #include<iostream>
-#include <unistd.h>
+#include <unistd.h>    // for getpid to work
 #include <gsl/gsl_rng.h>
 
 using namespace std;
