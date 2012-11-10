@@ -58,34 +58,48 @@ int main()
     // Output stream
     ofstream OutStream("out.txt");  // Output file and the stream
 
-    #pragma omp parallel firstprivate(partial_pop_left, partial_pop_right) 
+    #pragma omp parallel \
+    firstprivate(partial_pop_left, partial_pop_right) 
+    {
+        // Get the number of threads and the id of the current thread
+        ULONG num_threads = omp_get_num_threads();
+        ULONG thread_id   = omp_get_thread_num();
+        OutStream << "Threads: " << num_threads << "Current Thread: "
+        << thread_id << endl;
 
-    #pragma omp for firstprivate(SB, DummySB) 
-    for (ULONG traj=1; traj <= MAX_TRAJ; traj++)
-    {  
-        int tid = omp_get_thread_num();
-        ostringstream oss; 
-        oss << " traj " << traj << " tid: " << tid << endl;
-        OutStream << oss.str() << endl;
+        #pragma omp for firstprivate(SB, DummySB) 
+        for (ULONG traj=1; traj <= MAX_TRAJ; traj++)
+        {  
+            // The thread with the highest id usually handles the 
+            //  trjacotories with higher indices. So by printing 
+            // this, we can get some idea about the progress of the
+            // calculation
+            if ( thread_id == (num_threads-1) || thread_id == 0 )
+            {
+                  OutStream << " Thread: " << thread_id << " Traj: " 
+                  << traj << endl;
+            }
 
-        // Set the random initial variables
-        SB.Init_vars(rng_x, rng_p, rng_uniform);
+            // Set the random initial variables
+            SB.Init_vars(rng_x, rng_p, rng_uniform);
  
 
-        // Start the clock now
-        for (ULONG t=0; t < MAX_STEPS; t++) 
-        {
-            // Add up the contributions to the total population due to
-            // the trajectories handled by the current thread 
-            total_pop_left[t]  += SB.Diabatic_pop('L');
-            total_pop_right[t] += SB.Diabatic_pop('R');
+            // Start the clock now
+            for (ULONG t=0; t < MAX_STEPS; t++) 
+            {
+                // Add up the contributions to the total population due to
+                // the trajectories handled by the current thread 
+                total_pop_left[t]  += SB.Diabatic_pop('L');
+                total_pop_right[t] += SB.Diabatic_pop('R');
 
-            // Check if hopping is feasible
-            SB.Check_for_hopping(DT);
+                // Check if hopping is feasible
+                SB.Check_for_hopping(DT);
 
-            // Take a Runge-Kutta step and update the dyanmical
-            // variables
-            SB.Take_a_Runge_Kutta_step(DT, DummySB);
+               // Take a Runge-Kutta step and update the dyanmical
+               // variables
+               SB.Take_a_Runge_Kutta_step(DT, DummySB);
+            }
+
         }
 
         // Now add up the contributions from different threads
@@ -99,7 +113,8 @@ int main()
         }
     }
 
-    ofstream PopStream("pop.txt");  // open/reopen for writing
+
+    ofstream PopStream("pop.txt");  
     PopStream << "# Av pop for " << MAX_TRAJ << " trajectories:\n";
 
     for ( ULONG t=0; t < MAX_STEPS; t++ )

@@ -15,7 +15,7 @@ SOURCE=driver.cpp spinbosoninput.cpp spinboson.cpp
 
 $(EXE): $(SOURCE)
 	$(CPP) $(OMP) -o $(EXE) $(SOURCE)  \
-		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas \
+		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas -lm \
 		$(OPT) $(WARN) 
 	@echo " "
 	@echo "---------------------------------------------"
