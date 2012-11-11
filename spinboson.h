@@ -31,6 +31,8 @@ class SpinBoson
 
         // Constants for the spinboson problem
         double Er, kT, EPS0, V12, GAMMA, OMEGA0, OMEGA, M;
+        double a;
+        const double b = a;
        
         // The input variables 
         //--------------------------------------------------------

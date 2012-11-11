@@ -207,7 +207,7 @@ void SpinBoson::Check_for_hopping(const double& dt)
 
     // Get the required elements of the density matrix, aa =  c x c^+
     dcomplex aa_jk = c_val[j] * conj( c_val[k] );  
-    dcomplex aa_kk = c_val[k] * conj( c_val[k] ); 
+    double real_aa_kk = real( c_val[k] * conj( c_val[k] ) ); 
 
     // Now get the derivative coupling
     Get_derivative_coupling();  // get dc(i,j)
@@ -216,12 +216,14 @@ void SpinBoson::Check_for_hopping(const double& dt)
     // "Molecular dynamics with electronic transitions"
     // J.C. Tully, J. Chem. Phys. 93, 1061 (1990).
     double b_jk = -2.0 * real( conj(aa_jk) * p_val * dc[j][k] );
-    double g_kj = dt * b_jk / real(aa_kk);
-
-    // Set g_kj to zero if it's negative
-    if (g_kj < 0.0) 
+    double g_kj; 
+    if ( abs(real_aa_kk) < 1.0e-12 )
         g_kj = 0.0;
-	
+    else if ( b_jk/real_aa_kk < 0.0 )
+        g_kj = 0.0;
+    else
+        g_kj = dt * b_jk / real_aa_kk;
+
 
     // Check for hopping against a random number
     double rand_num = gsl_rng_uniform(rng_uniform.ptr);
@@ -231,14 +233,16 @@ void SpinBoson::Check_for_hopping(const double& dt)
         // Compute the KE after the hop
         Get_PES();  // Get V(i)
         double Delta_PE = V[other_surface] - V[surface]; //PE change
-        double Delta_KE = Delta_PE; // KE change due to Engery consv.
-        double KE_new = p_val*p_val/2.0 - Delta_KE;
+        double Delta_KE = -Delta_PE; // KE change due to Engery consv.
+        double KE_new = (p_val*p_val/2.0) + Delta_KE;
 
         // Update the momentum in case a hop is really feasible
-        if ( surface==1 || (surface==0 && KE_new+OMEGA >= 0.0) )
+        // For 0->1 make sure p != 0. 
+        if ( (surface==1 && abs(p_val) > 0)
+        ||   (surface==0 && KE_new > 0) )
         {
             double pSign = p_val / abs(p_val);
-            p_val = pSign * sqrt (2.0 * KE_new); //same direction
+            p_val = pSign * sqrt(2.0*KE_new); //new mom in the same direction
             surface = other_surface;
         }
     }

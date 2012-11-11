@@ -65,8 +65,6 @@ int main()
     }
     
     // Define registers to hold populations (initialized to zero)
-    vector<double> partial_pop_left(MAX_STEPS);
-    vector<double> partial_pop_right(MAX_STEPS);
     vector<double> total_pop_left(MAX_STEPS);
     vector<double> total_pop_right(MAX_STEPS);
 
@@ -79,7 +77,6 @@ int main()
     // so-called "race condition".
     #pragma omp parallel default(none) \
         firstprivate ( SB, DummySB ) \
-        firstprivate ( partial_pop_left, partial_pop_right ) \
         shared (x_i, p_i, total_pop_left, total_pop_right, OutStream) 
     {
         // Get the number of threads and the id of the current thread
@@ -90,6 +87,10 @@ int main()
            OutStream << "Details for the thread w/ highest ID (#" 
            << thread_id << ")\n\n";
         }
+
+        // Registers to store populations for the current thread
+        vector<double> partial_pop_left(MAX_STEPS);
+        vector<double> partial_pop_right(MAX_STEPS);
 
         // Give chunks of the trajectories to the running threads
         #pragma omp for 
@@ -104,8 +105,8 @@ int main()
                 // Add up the contributions to the total population due to
                 // the trajectories handled by the current thread 
                 double* pop_d = SB.Diabatic_pop();
-                total_pop_left[t]  += pop_d[0];
-                total_pop_right[t] += pop_d[1];
+                partial_pop_left[t]  += pop_d[0];
+                partial_pop_right[t] += pop_d[1];
 
                 // Check if hopping is feasible
                 SB.Check_for_hopping(DT);

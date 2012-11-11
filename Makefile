@@ -6,7 +6,7 @@
 
 CPP=/data/home/kousik/local/bin/g++
 EXE=driver.x
-OPT=-O3 -mtune=opteron -m64
+OPT=-O3 -mtune=opteron -m64 -std=c++11
 WARN=-Wall -Wextra -pedantic 
 DEBUG=-v -time -g -H -Q 
 GSL=/data/home/kousik/GSL
