@@ -19,7 +19,7 @@ using namespace std;
 struct SpinBosonInput {
 
     double Er, kT, EPS0, V12, GAMMA, OMEGA0, OMEGA, DT;
-    unsigned long MAX_TRAJ, MAX_STEPS;
+    unsigned long MAX_TRAJ, MAX_STEPS, MAX_POINTS;
 
     SpinBosonInput();	     	// set the default values stored
     SpinBosonInput(ifstream& );	// call via ifstream object

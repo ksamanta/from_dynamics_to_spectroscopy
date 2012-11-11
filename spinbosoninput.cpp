@@ -16,8 +16,9 @@
     OMEGA0	  = 2.734e-6; // Freq. of the oscillator
     OMEGA	  = 1.0e0;	  // Freq. of incident radiation
     DT		  = 1.25; 	  // time step
-    MAX_STEPS = 10000;	  // Maximum time to simulate
+    MAX_STEPS = 1000000;	  // Maximum time to simulate
     MAX_TRAJ  = 10000;	  // Max number of trajectories to run
+    MAX_POINTS= 100000;	  // Max number of time steps to print
 ------------  End sample input -------------------------------
  
  NOTE:
@@ -59,6 +60,7 @@
 
 #include<string>
 #include<sstream>
+#include <gsl/gsl_randist.h>
 #include "spinbosoninput.h"
 
 //===========================================================================
@@ -108,6 +110,7 @@ SpinBosonInput::SpinBosonInput()
     DT        = 1.25;       // time step
     MAX_STEPS = 10000;	    // Maximum time to simulate
     MAX_TRAJ  = 10000;	    // Max number of trajectories to run
+    MAX_POINTS= 100000;	  // Max number of time steps to print
 }
 
 
@@ -153,6 +156,8 @@ SpinBosonInput::SpinBosonInput(ifstream &InpStream)
                 else if (trimmed_key == "DT"		)  ss_val >> DT;
                 else if (trimmed_key == "MAX_STEPS") ss_val>>MAX_STEPS;
                 else if (trimmed_key == "MAX_TRAJ")  ss_val >> MAX_TRAJ;
+                else if (trimmed_key == "MAX_POINTS")  
+                        ss_val >> MAX_POINTS;
             }
         }
     }
@@ -173,6 +178,4 @@ SpinBosonInput::SpinBosonInput(string FileName)
 //===========================================================================
 SpinBosonInput::~SpinBosonInput(){}
 
-			
-		
 

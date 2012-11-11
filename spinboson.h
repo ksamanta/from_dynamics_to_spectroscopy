@@ -12,6 +12,7 @@
 #include<iomanip>
 #include<fstream>
 #include<complex>
+#include <gsl/gsl_randist.h>
 #include "rng.h"
 #include "spinbosoninput.h"
 
@@ -37,6 +38,13 @@ class SpinBoson
         double x_val, p_val; // The dynamical variables x and p
         dcomplex c_val[2];   // coefs
 
+        // Variables to store initial values
+        int S_i;
+        double x_i, p_i;
+        dcomplex c_i[2];
+
+        // Diabatic population
+        double pop_d[2];
 
         // Other variables (computed by the methods in the class)
         //--------------------------------------------------------
@@ -62,20 +70,20 @@ class SpinBoson
 
        // The other methods
        //--------------------------------------------------------
-       void Init_vars(int, double, double, dcomplex *);
-       void Init_vars(RNG&, RNG&, RNG&);
+       void Init_vars(double&, double&);
+       void Init_vars(int&, double&, double&, dcomplex (&)[2]);
        void Get_PES();
        void Get_dVdx();
        void Get_derivative_coupling();
-       void Get_time_derivatives(double);
-       void Check_for_hopping(const double);
-       void Take_a_Runge_Kutta_step(const double, SpinBoson&);
+       void Get_time_derivatives(const double&);
+       void Check_for_hopping(const double&);
+       void Take_a_RK4_step(const double&, SpinBoson&);
 
        double Theta();
-       double Diabatic_pop(char);
+       double* Diabatic_pop();
 
        double Get_x(){return x_val; };
-       void Footprints(string, ULONG, ofstream& );
+       void Print_terminal_points(ULONG&, ofstream& );
        void Print_PES(ofstream& );
 }; 
 
