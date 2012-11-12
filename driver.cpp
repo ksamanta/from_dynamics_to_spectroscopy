@@ -52,16 +52,16 @@ int main()
     // First, generate MAX_TRAJ random intial x and p values 
     // (Generate them all at once so that they conform to the 
     // correct distributions).
-    const double Er=SBI.Er, kT=SBI.kT, OMEGA0=SBI.OMEGA0;
-    const double SIGMA_X = sqrt(kT)/OMEGA0, SIGMA_P = sqrt(kT);
-    const double MEAN_X = -sqrt(Er/2.0)/OMEGA0; 
+    RNG RNG_x, RNG_p;
     vector<double> x_i(MAX_TRAJ), p_i(MAX_TRAJ);
-    RNG rng_x, rng_p;
+    const double SIGMA_X = sqrt(SBI.kT)/SBI.OMEGA0;
+    const double MEAN_X = -sqrt(SBI.Er/2.0)/SBI.OMEGA0; 
+    const double SIGMA_P = sqrt(SBI.kT), MEAN_P = 0.0;
     
     for (ULONG traj = 1; traj <= MAX_TRAJ; traj++)
     {
-        x_i[traj] = gsl_ran_gaussian(rng_x.ptr, SIGMA_X) + MEAN_X;
-        p_i[traj] = gsl_ran_gaussian(rng_p.ptr, SIGMA_P); // MEAN_P=0
+        x_i[traj] = RNG_x.Sample_gaussian(SIGMA_X, MEAN_X);
+        p_i[traj] = RNG_p.Sample_gaussian(SIGMA_P, MEAN_P);
     }
     
     // Define registers to hold populations (initialized to zero)

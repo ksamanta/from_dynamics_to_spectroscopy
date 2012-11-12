@@ -6,7 +6,7 @@
 
 CPP=/data/home/kousik/local/bin/g++
 EXE=driver.x
-OPT=-O3 -mtune=opteron -m64 -std=c++11
+OPT=-O3 -mtune=opteron -m64 
 WARN=-Wall -Wextra -pedantic 
 DEBUG=-v -time -g -H -Q 
 GSL=/data/home/kousik/GSL
@@ -14,9 +14,8 @@ OMP=-fopenmp
 SOURCE=driver.cpp spinbosoninput.cpp spinboson.cpp 
 
 $(EXE): $(SOURCE)
-	$(CPP) $(OMP) -o $(EXE) $(SOURCE)  \
-		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas -lm \
-		$(OPT) $(WARN) 
+	$(CPP) $(OMP) $(OPT) $(WARN) -o $(EXE) $(SOURCE)  \
+		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas -lm 
 	@echo " "
 	@echo "---------------------------------------------"
 	@echo "Compilation successful. Yay!!"

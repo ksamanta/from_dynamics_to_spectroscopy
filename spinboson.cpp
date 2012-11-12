@@ -7,50 +7,8 @@
 
 #include "spinboson.h"
 
-
-// The constructor and the destructor
-//======================================================================
-
-// Default constructor
-SpinBoson::SpinBoson(const SpinBosonInput & SBI)
-{
-    // Defin the SpinBoson constants
-    Er     = SBI.Er;
-    kT     = SBI.kT;
-    EPS0   = SBI.EPS0;
-    V12	   = SBI.V12;
-    GAMMA  = SBI.GAMMA;
-    OMEGA0 = SBI.OMEGA0;
-    OMEGA  = SBI.OMEGA;
-    M      = OMEGA0 * sqrt(Er/2.0);
-}
-
-// Copy constructor
-SpinBoson::SpinBoson(const SpinBoson & SB_original)
-{
-    // Defin the SpinBoson constants
-    Er     = SB_original.Er;
-    kT     = SB_original.kT;
-    EPS0   = SB_original.EPS0;
-    V12	   = SB_original.V12;
-    GAMMA  = SB_original.GAMMA;
-    OMEGA0 = SB_original.OMEGA0;
-    OMEGA  = SB_original.OMEGA;
-    M      = SB_original.M;
-}
-
-
-// The destructor
-SpinBoson::~SpinBoson() { }
-
-
-
-// Other methods
-//======================================================================
-
-
 // Init_vars --- Initialize the dynamic variables, x, p and c, and
-// surface.
+// choose the adiabatic surface.
 //----------------------------------------------------------------------
 
 // Given initial x and p, compute c such that the starting point is on
@@ -68,7 +26,7 @@ void SpinBoson::Init_vars(double& X, double& P)
     c_val[1] = dcomplex( sqrt(pop_1), 0.0);
 
     // surface
-    double rand_num = gsl_rng_uniform(rng_uniform.ptr);
+    double rand_num = RNG_uniform.Sample_uniform();
     if ( pop_0 >= rand_num ) 
         surface = 0;
     else 
@@ -82,7 +40,7 @@ void SpinBoson::Init_vars(double& X, double& P)
    c_i[1] = c_val[1];
 }
 
-// Overload it to set specific values
+// Overload it to set specific values of all the variables
 void SpinBoson::Init_vars(int& S, double& X, double& P,
 dcomplex (&C)[2] )
 {
@@ -129,7 +87,6 @@ void SpinBoson::Get_dVdx()
 
 
 // Get_derivative_coupling -- Compute the adiabatic derivative coupling: 
-// just the d01 (AKA, d12) element
 //----------------------------------------------------------------------
 void SpinBoson::Get_derivative_coupling()
 {
@@ -226,7 +183,7 @@ void SpinBoson::Check_for_hopping(const double& dt)
 
 
     // Check for hopping against a random number
-    double rand_num = gsl_rng_uniform(rng_uniform.ptr);
+    double rand_num = RNG_uniform.Sample_uniform();
 
     if (g_kj > rand_num) 
     {
@@ -237,12 +194,10 @@ void SpinBoson::Check_for_hopping(const double& dt)
         double KE_new = (p_val*p_val/2.0) + Delta_KE;
 
         // Update the momentum in case a hop is really feasible
-        // For 0->1 make sure p != 0. 
-        if ( (surface==1 && abs(p_val) > 0)
-        ||   (surface==0 && KE_new > 0) )
+        if ( surface == 1 || (surface==0 && KE_new > 0) )
         {
-            double pSign = p_val / abs(p_val);
-            p_val = pSign * sqrt(2.0*KE_new); //new mom in the same direction
+            double pSign = p_val / abs(p_val);//NOTE: p_val=0 =>g_kj=0
+            p_val = pSign * sqrt(2.0*KE_new); //don't change direction
             surface = other_surface;
         }
     }
@@ -261,8 +216,9 @@ SpinBoson& DummySB)
     // (it's the same for all RK micro-steps corresponding to one 
     // single big RK step.)
     const double sigma_force = sqrt(2.0*GAMMA*kT/dt);
-    const double random_force = 
-        gsl_ran_gaussian(rng_force.ptr, sigma_force);
+    const double mean_force = 0.0;
+    const double random_force 
+        = RNG_force.Sample_gaussian(sigma_force, mean_force);
 
     // The initial dynamic variables for DummySB
     double Dummy_x = x_val;

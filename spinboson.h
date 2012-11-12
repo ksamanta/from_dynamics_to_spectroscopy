@@ -12,7 +12,6 @@
 #include<iomanip>
 #include<fstream>
 #include<complex>
-#include <gsl/gsl_randist.h>
 #include "rng.h"
 #include "spinbosoninput.h"
 
@@ -30,9 +29,7 @@ class SpinBoson
     private:
 
         // Constants for the spinboson problem
-        double Er, kT, EPS0, V12, GAMMA, OMEGA0, OMEGA, M;
-        double a;
-        const double b = a;
+        const double Er, kT, EPS0, V12, GAMMA, OMEGA0, OMEGA, M;
        
         // The input variables 
         //--------------------------------------------------------
@@ -58,17 +55,37 @@ class SpinBoson
         double x_dot, p_dot;
         dcomplex c_dot[2];
 
-        // Struct instances for the random number generators (rng.h).
-        // All but the last are for Gaussian distributions.
-        RNG rng_force, rng_uniform;
+        // Rrandom number generator objects (see rng.h).
+        RNG RNG_force, RNG_uniform;
 
     public:
 
-        // Constructor, copy constructor and destructor
-        //--------------------------------------------------------
-        SpinBoson(const SpinBosonInput&);
-        SpinBoson(const SpinBoson&); 
-        ~SpinBoson();						
+        // The constructor method
+        SpinBoson(const SpinBosonInput& SBI): 
+            Er (SBI.Er),
+            kT (SBI.kT),
+            EPS0 (SBI.EPS0),
+            V12 (SBI.V12),
+            GAMMA (SBI.GAMMA),
+            OMEGA0 (SBI.OMEGA0),
+            OMEGA (SBI.OMEGA),
+            M (SBI.OMEGA0*sqrt(SBI.Er/2.0))
+         {};
+
+        // The copy constructor method
+        SpinBoson(const SpinBoson& SB): 
+            Er (SB.Er),
+            kT (SB.kT),
+            EPS0 (SB.EPS0),
+            V12 (SB.V12),
+            GAMMA (SB.GAMMA),
+            OMEGA0 (SB.OMEGA0),
+            OMEGA (SB.OMEGA),
+            M (SB.OMEGA0*sqrt(SB.Er/2.0))
+         {};
+
+        // The destructor method
+        ~SpinBoson(){};						
 
        // The other methods
        //--------------------------------------------------------
