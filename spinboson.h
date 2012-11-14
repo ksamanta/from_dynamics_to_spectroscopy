@@ -17,9 +17,9 @@
 
 using namespace std;
 
+
 // Get a shorthand notation for double complex
 typedef complex<double> dcomplex;	
-typedef unsigned long ULONG;
 
 
 // The SpinBoson class
@@ -30,9 +30,8 @@ class SpinBoson
 
         // Constants for the spinboson problem
         const double Er, kT, EPS0, V12, GAMMA, OMEGA0, OMEGA, M;
-       
-        // The input variables 
-        //--------------------------------------------------------
+
+        // The surface and the dynamic variables 
         int surface;         // surface index 
         double x_val, p_val; // The dynamical variables x and p
         dcomplex c_val[2];   // coefs
@@ -45,9 +44,6 @@ class SpinBoson
         // Diabatic population
         double pop_d[2];
 
-        // Other variables (computed by the methods in the class)
-        //--------------------------------------------------------
-
         // V ==  PES, dVDx == dV/dx, dc == derivative coupling
         double V[2], dVdx[2], dc[2][2];  
 
@@ -57,6 +53,7 @@ class SpinBoson
 
         // Rrandom number generator objects (see rng.h).
         RNG RNG_force, RNG_uniform;
+
 
     public:
 
@@ -87,23 +84,23 @@ class SpinBoson
         // The destructor method
         ~SpinBoson(){};						
 
-       // The other methods
-       //--------------------------------------------------------
-       void Init_vars(double&, double&);
-       void Init_vars(int&, double&, double&, dcomplex (&)[2]);
+
+       // Other methods (see spinboson.cpp for details)
+       void Init_vars(double &, double &);
+       void Init_vars(int &, double &, double &, dcomplex (&)[2]);
        void Get_PES();
        void Get_dVdx();
        void Get_derivative_coupling();
-       void Get_time_derivatives(const double&);
-       void Check_for_hopping(const double&);
-       void Take_a_RK4_step(const double&, SpinBoson&);
+       void Get_time_derivatives(const double &);
+       void Check_for_hopping(const double &);
+       void Take_a_RK4_step(const double &, SpinBoson &);
 
        double Theta();
        double* Diabatic_pop();
 
        double Get_x(){return x_val; };
-       void Print_terminal_points(ULONG&, ofstream& );
-       void Print_PES(ofstream& );
+       void Print_terminal_points(unsigned long &, ofstream &);
+       void Print_PES(ofstream &);
 }; 
 
 

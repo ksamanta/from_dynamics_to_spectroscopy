@@ -63,6 +63,7 @@
 #include <gsl/gsl_randist.h>
 #include "spinbosoninput.h"
 
+
 //===========================================================================
 // Inline scripts to trim a string
 // Ref: http://www.cplusplus.com/faq/sequences/strings/trim/
@@ -94,28 +95,30 @@ inline string trim_copy(
 
 
 
+//===========================================================================
 // Default constructor for the SpinBosonInput struct
 //===========================================================================
 
 SpinBosonInput::SpinBosonInput()
 {
-    // Default values
-    Er        = 2.39e-2;    // Reorganization energy
-    kT        = 9.5e-4;     // Boltzmann const * Temp
-    EPS0      = 1.8e-2;     // Energy diff between the well minima
-    V12       = 1.25e-5;    // diabatic coupling
-    GAMMA     = 2.34e-6;    // frictional constant
-    OMEGA0    = 2.734e-6;   // Freq. of the oscillator
-    OMEGA     = 1.0e0;	    // Freq. of incident radiation
-    DT        = 1.25;       // time step
-    MAX_STEPS = 10000;	    // Maximum time to simulate
-    MAX_TRAJ  = 10000;	    // Max number of trajectories to run
+    Er		  = 2.39e-2;  // Reorganization energy
+    kT		  = 9.5e-4;   // Boltzmann const * Temp
+    EPS0	  = 1.8e-2;   // Energy diff between the well minima
+    V12		  = 1.25e-5;  // diabatic coupling
+    GAMMA	  = 2.34e-6;  // frictional constant
+    OMEGA0	  = 2.734e-6; // Freq. of the oscillator
+    OMEGA	  = 1.0e0;	  // Freq. of incident radiation
+    DT		  = 1.25; 	  // time step
+    MAX_STEPS = 1000000;	  // Maximum time to simulate
+    MAX_TRAJ  = 10000;	  // Max number of trajectories to run
     MAX_POINTS= 100000;	  // Max number of time steps to print
 }
 
 
+//===========================================================================
 // Standard constructor with an ifstream object (input stream) as an argument
 //===========================================================================
+
 SpinBosonInput::SpinBosonInput(ifstream &InpStream)
 {
     // Load the default values first
@@ -135,7 +138,7 @@ SpinBosonInput::SpinBosonInput(ifstream &InpStream)
             string key  = line.substr(0, loc_of_assignment_op);
             string val = line.substr(loc_of_assignment_op+1); 
            
-            // Check wheter the key is non-blank and val is numeric
+            // Check to see if the key is non-blank and val is numeric
             if (key.find_first_not_of(" \f\n\r\t\v") != string::npos
             && val.find_first_of("0123456789") != string::npos) 
             {
@@ -146,24 +149,35 @@ SpinBosonInput::SpinBosonInput(ifstream &InpStream)
                 istringstream ss_val(val);
 
                 // Now assign values
-                if (		trimmed_key == "Er"		)  ss_val >> Er;
-                else if (trimmed_key == "kT"		)  ss_val >> kT;
-                else if (trimmed_key == "EPS0"	)  ss_val >> EPS0;
-                else if (trimmed_key == "V12"	)  ss_val >> V12;
-                else if (trimmed_key == "GAMMA"	)  ss_val >> GAMMA;
-                else if (trimmed_key == "OMEGA0"	)  ss_val >> OMEGA0;
-                else if (trimmed_key == "OMEGA"	)  ss_val >> OMEGA;
-                else if (trimmed_key == "DT"		)  ss_val >> DT;
-                else if (trimmed_key == "MAX_STEPS") ss_val>>MAX_STEPS;
-                else if (trimmed_key == "MAX_TRAJ")  ss_val >> MAX_TRAJ;
+                if (trimmed_key == "Er")  
+                    ss_val >> Er;
+                else if (trimmed_key == "kT")  
+                    ss_val >> kT;
+                else if (trimmed_key == "EPS0")  
+                    ss_val >> EPS0;
+                else if (trimmed_key == "V12"	)  
+                    ss_val >> V12;
+                else if (trimmed_key == "GAMMA")  
+                    ss_val >> GAMMA;
+                else if (trimmed_key == "OMEGA0")  
+                    ss_val >> OMEGA0;
+                else if (trimmed_key == "OMEGA")  
+                    ss_val >> OMEGA;
+                else if (trimmed_key == "DT")  
+                    ss_val >> DT;
+                else if (trimmed_key == "MAX_STEPS") 
+                    ss_val>>MAX_STEPS;
+                else if (trimmed_key == "MAX_TRAJ")  
+                    ss_val >> MAX_TRAJ;
                 else if (trimmed_key == "MAX_POINTS")  
-                        ss_val >> MAX_POINTS;
+                    ss_val >> MAX_POINTS;
             }
         }
     }
 }
 
 
+//===========================================================================
 // Standard constructor with a string (input file name) as an argument
 //===========================================================================
 SpinBosonInput::SpinBosonInput(string FileName)
@@ -173,7 +187,7 @@ SpinBosonInput::SpinBosonInput(string FileName)
 }
 
 
-
+//===========================================================================
 // destructor
 //===========================================================================
 SpinBosonInput::~SpinBosonInput(){}

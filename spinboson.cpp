@@ -7,13 +7,16 @@
 
 #include "spinboson.h"
 
+
+//----------------------------------------------------------------------
 // Init_vars --- Initialize the dynamic variables, x, p and c, and
 // choose the adiabatic surface.
 //----------------------------------------------------------------------
 
 // Given initial x and p, compute c such that the starting point is on
 // the left well. Depending on the c's, choose an adiabatic surface.
-void SpinBoson::Init_vars(double& X, double& P)
+
+void SpinBoson::Init_vars(double &X, double &P)
 {
     x_val = X;
     p_val = P;
@@ -40,8 +43,10 @@ void SpinBoson::Init_vars(double& X, double& P)
    c_i[1] = c_val[1];
 }
 
+
 // Overload it to set specific values of all the variables
-void SpinBoson::Init_vars(int& S, double& X, double& P,
+
+void SpinBoson::Init_vars(int &S, double &X, double &P,
 dcomplex (&C)[2] )
 {
     surface  = S;
@@ -51,18 +56,22 @@ dcomplex (&C)[2] )
     c_val[1] = C[1];
 }
 
+
+//----------------------------------------------------------------------
 // Theta --- get theta = arctan( V12 / (M*x_val+EPS0/2.0) )
 //----------------------------------------------------------------------
-double SpinBoson::Theta()
+
+inline double SpinBoson::Theta()
 {
     return atan2( V12, (M*x_val+EPS0/2.0) );
 }
 
 		
-
+//----------------------------------------------------------------------
 // Get_PES -- Compute the adiabatic potential energy surfaces
 //----------------------------------------------------------------------
-void SpinBoson::Get_PES()
+
+inline void SpinBoson::Get_PES()
 {
     double first_part = (OMEGA0*OMEGA0*x_val*x_val - EPS0)/2.0;	
     double second_part = sqrt( (M*x_val+EPS0/2.0)*(M*x_val+EPS0/2.0)
@@ -73,9 +82,11 @@ void SpinBoson::Get_PES()
 }
 
 
+//----------------------------------------------------------------------
 // Get_dVdX -- Compute the spatial derivative of the adiabatic PESs
 //----------------------------------------------------------------------
-void SpinBoson::Get_dVdx()
+
+inline void SpinBoson::Get_dVdx()
 {
     double first_part = OMEGA0*OMEGA0*x_val;
     double second_part = M*(M*x_val+EPS0/2.0)
@@ -86,9 +97,11 @@ void SpinBoson::Get_dVdx()
 }
 
 
+//----------------------------------------------------------------------
 // Get_derivative_coupling -- Compute the adiabatic derivative coupling: 
 //----------------------------------------------------------------------
-void SpinBoson::Get_derivative_coupling()
+
+inline void SpinBoson::Get_derivative_coupling()
 {
     double numer = -M*V12;   
     double denom = 2.0 * ( (M*x_val+EPS0/2.0)*(M*x_val+EPS0/2.0) 
@@ -101,10 +114,11 @@ void SpinBoson::Get_derivative_coupling()
 }
 
 
-
+//----------------------------------------------------------------------
 // Get_time_derivatives ----Get dx/dt, dp/dt, dc/dt
 //----------------------------------------------------------------------
-void SpinBoson::Get_time_derivatives(const double& Random_force)
+
+void SpinBoson::Get_time_derivatives(const double &Random_force)
 {
     //  dx/dt
     //..................................................................
@@ -151,11 +165,12 @@ void SpinBoson::Get_time_derivatives(const double& Random_force)
 }
 		
 
-	
+//----------------------------------------------------------------------
 // Check_for_hopping -- Check if a hopping (FSSH style) is possible,
 // and if it is, then do hop (i.e., change the surface)
 //----------------------------------------------------------------------
-void SpinBoson::Check_for_hopping(const double& dt)
+
+void SpinBoson::Check_for_hopping(const double &dt)
 {	
     // The current and new (to jump on to) surfaces
     int k = surface;      // current surface
@@ -169,9 +184,11 @@ void SpinBoson::Check_for_hopping(const double& dt)
     // Now get the derivative coupling
     Get_derivative_coupling();  // get dc(i,j)
 
+
     // b_jk (Eq. 14) and g_kj (Eq. 19) refer to Tully's FSSH paper:
     // "Molecular dynamics with electronic transitions"
     // J.C. Tully, J. Chem. Phys. 93, 1061 (1990).
+
     double b_jk = -2.0 * real( conj(aa_jk) * p_val * dc[j][k] );
     double g_kj; 
     if ( abs(real_aa_kk) < 1.0e-12 )
@@ -204,21 +221,25 @@ void SpinBoson::Check_for_hopping(const double& dt)
 }
 
 	
+//--------------------------------------------------------------------
 // Take_a_RK4_step -- Take a 4-th order Runge-Kutta step and 
 // change the dyanmical variables.
 // NOTE: You need to initialize a dummy SpinBoson instance, DummySB,
 // (one of the arguments to be passed) BEFORE you can use this method)
 //--------------------------------------------------------------------
-void SpinBoson::Take_a_RK4_step(const double& dt, 
+
+void SpinBoson::Take_a_RK4_step(const double &dt, 
 SpinBoson& DummySB)
 {		
     // Generate a random force for the Langevin-type dynamics
     // (it's the same for all RK micro-steps corresponding to one 
     // single big RK step.)
+
     const double sigma_force = sqrt(2.0*GAMMA*kT/dt);
     const double mean_force = 0.0;
     const double random_force 
         = RNG_force.Sample_gaussian(sigma_force, mean_force);
+
 
     // The initial dynamic variables for DummySB
     double Dummy_x = x_val;
@@ -251,8 +272,8 @@ SpinBoson& DummySB)
 				
         // Compute Runge-Kutta parameters for x
         double kx = dt * DummySB.x_dot;  // RK parameter (k)
-        sum_x    += sum_fac * kx;       // Update x
-        Dummy_x   = x_val + k_fac * kx; // Get input for the next RK_order
+        sum_x    += sum_fac * kx;        // Update x
+        Dummy_x   = x_val + k_fac * kx;  // inp for the next RK_order
 
         // Compute Runge-Kutta parameters for p
         double kp = dt * DummySB.p_dot;
@@ -275,16 +296,20 @@ SpinBoson& DummySB)
 }
 
 
-// Get_diabatic_population --
 //----------------------------------------------------------------------
+// Get_diabatic_population -- returns pop_d defined as a private array 
+//----------------------------------------------------------------------
+
 double* SpinBoson::Diabatic_pop()
 {
     const double sin2_half_theta = (1.0 - cos(Theta()) ) / 2.0 ;
     const double cos2_half_theta = (1.0 - sin2_half_theta);
 
+
     // Define populations, and set the population of the active
     // adiabatic surface to be 1 and that of the inactive to be 0.
     // (Suffix "d" means diabatic, and suffix "a" adiabatic)
+
     double pop_a[2];
     pop_a[surface]   = 1.0;
     pop_a[1-surface] = 0.0;
@@ -295,47 +320,59 @@ double* SpinBoson::Diabatic_pop()
     return pop_d;
 }
 
-// Footprints -- print out the variables at the current time step
+
 //--------------------------------------------------------------------
-void SpinBoson::Print_terminal_points(ULONG& index,
-ofstream& OutStream)
+// Print_terminal_points -- print out the variables at the current 
+// time step
+//--------------------------------------------------------------------
+
+void SpinBoson::Print_terminal_points(unsigned long &index,
+ofstream &OutStream)
 {
     // Compute norms
     double norm_i = real(  sqrt( c_i[0]*conj(c_i[0]) 
-                           + c_i[1]*conj(c_i[1]) )  );
+                               + c_i[1]*conj(c_i[1]) )  );
     double norm_f = real(  sqrt( c_val[0]*conj(c_val[0]) 
-                          + c_val[1]*conj(c_val[1]) )  );
+                               + c_val[1]*conj(c_val[1]) )  );
 
     // Now print in the output stream
     OutStream << "Traj: "
-    << setw(6) << index 
-    << scientific << setprecision(3)
-    << "  INITL  S: "  << setw(2) << S_i 
-    << ",  x: " << setw(10) << x_i
-    << ",  p: " << setw(10) << p_i 
-    << ",  c0: (" << setw(10) << real(c_i[0])
-             << ", " << setw(10) << imag(c_i[0]) << ")"
-    << ",  c1: (" << setw(10) << real(c_i[1])
-              <<", " << setw(10) << imag(c_i[1]) << ")"
-    << ",  |1-Norm|: " << setw(10) << abs(1.0-norm_i)
-    << endl 
+        << setw(6) << index 
+        << scientific << setprecision(3)
+        << "  INITL  S: "  << setw(2) << S_i 
+        << ",  x: " << setw(10) << x_i
+        << ",  p: " << setw(10) << p_i 
+        << ",  c0: (" << setw(10) << real(c_i[0])
+            << ", " << setw(10) << imag(c_i[0]) << ")"
+        << ",  c1: (" << setw(10) << real(c_i[1])
+            <<", " << setw(10) << imag(c_i[1]) << ")"
+        << ",  |1-Norm|: " << setw(10) << abs(1.0-norm_i)
+        << endl 
     << setw(12) << " "
-    << "  FINAL  S: "  << setw(2) << surface
-    << ",  x: " << setw(10) << x_val
-    << ",  p: " << setw(10) << p_val
-    << ",  c0: (" << setw(10) << real(c_val[0])
-             << ", " << setw(10) << imag(c_val[0]) << ")"
-    << ",  c1: (" << setw(10) << real(c_val[1])
-              <<", " << setw(10) << imag(c_val[1]) << ")"
-    << ",  |1-Norm|: " << setw(10) << abs(1.0 - norm_f)
-    << endl << endl;
+        << "  FINAL  S: "  << setw(2) << surface
+        << ",  x: " << setw(10) << x_val
+        << ",  p: " << setw(10) << p_val
+        << ",  c0: (" << setw(10) << real(c_val[0])
+            << ", " << setw(10) << imag(c_val[0]) << ")"
+        << ",  c1: (" << setw(10) << real(c_val[1])
+            << ", " << setw(10) << imag(c_val[1]) << ")"
+        << ",  |1-Norm|: " << setw(10) << abs(1.0 - norm_f)
+        << endl 
+        << endl;
 }
 		
+
+//----------------------------------------------------------------------
 // Print_PES --- print the adiabatic energies
 //----------------------------------------------------------------------
-void SpinBoson::Print_PES (ofstream & OutStream){
+
+void SpinBoson::Print_PES (ofstream &OutStream)
+{
+    // Get the PES and derivative couplings first
     Get_PES();
     Get_derivative_coupling();
+
+    // Now print
     OutStream << x_val << " " << V[0] << "  " << V[1] << " "
     << dc[0][1]<<endl;
 }

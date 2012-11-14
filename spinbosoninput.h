@@ -22,7 +22,7 @@ struct SpinBosonInput {
     unsigned long MAX_TRAJ, MAX_STEPS, MAX_POINTS;
 
     SpinBosonInput();	     	// set the default values stored
-    SpinBosonInput(ifstream& );	// call via ifstream object
+    SpinBosonInput(ifstream &);	// call via ifstream object
     SpinBosonInput(string);		// call via a string (filename)
     ~SpinBosonInput();
 };
