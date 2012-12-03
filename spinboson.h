@@ -37,7 +37,7 @@ class SpinBoson
         dcomplex c_val[2];   // coefs
 
         // Variables to store initial values
-        int S_i;
+        int S_i;  // surface
         double x_i, p_i;
         dcomplex c_i[2];
 
@@ -45,7 +45,8 @@ class SpinBoson
         double pop_d[2];
 
         // V ==  PES, dVDx == dV/dx, dc == derivative coupling
-        double V[2], dVdx[2], dc[2][2];  
+        double V[2], grad_PES[2];
+        dcomplex  dc[2][2];  
 
         // Time derivatives
         double x_dot, p_dot;
@@ -58,7 +59,7 @@ class SpinBoson
     public:
 
         // The constructor method
-        SpinBoson(const SpinBosonInput& SBI): 
+        SpinBoson(const SpinBosonInput &SBI): 
             Er (SBI.Er),
             kT (SBI.kT),
             EPS0 (SBI.EPS0),
@@ -70,7 +71,7 @@ class SpinBoson
          {};
 
         // The copy constructor method
-        SpinBoson(const SpinBoson& SB): 
+        SpinBoson(const SpinBoson &SB): 
             Er (SB.Er),
             kT (SB.kT),
             EPS0 (SB.EPS0),
@@ -89,7 +90,7 @@ class SpinBoson
        void Init_vars(double &, double &);
        void Init_vars(int &, double &, double &, dcomplex (&)[2]);
        void Get_PES();
-       void Get_dVdx();
+       void Get_grad_PES();
        void Get_derivative_coupling();
        void Get_time_derivatives(const double &);
        void Check_for_hopping(const double &);

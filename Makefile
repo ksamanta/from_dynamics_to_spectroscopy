@@ -6,32 +6,46 @@
 
 CPP=/data/home/kousik/local/bin/g++
 EXE=driver.x
-OPT=-O3 -mtune=opteron -m64 
-WARN=-Wall -Wextra -pedantic 
-DEBUG=-v -time -g -H -Q 
 GSL=/data/home/kousik/GSL
-OMP=-fopenmp
-SOURCE=driver.cpp spinbosoninput.cpp spinboson.cpp 
+SOURCES=driver.cpp spinbosoninput.cpp spinboson.cpp 
+OMP_FLAG=-fopenmp
+GSL_FLAG=-L${GSL}/lib -I${GSL}/include -lgsl -lgslcblas -lm 
+OPT_FLAG=-O3 -mtune=opteron -m64 
+WARN_FLAG=-Wall -Wextra -pedantic  
+DEBUG_FLAG=-v -time -g -H -Q 
 
-$(EXE): $(SOURCE)
-	$(CPP) $(OMP) $(OPT) $(WARN) -o $(EXE) $(SOURCE)  \
-		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas -lm 
+
+${EXE}: ${SOURCES}
+	${CPP} -o ${EXE} ${SOURCES} \
+	${OMP_FLAG}  \
+	${OPT_FLAG}  \
+	${WARN_FLAG} \
+	${GSL_FLAG}
+
 	@echo " "
 	@echo "---------------------------------------------"
 	@echo "Compilation successful. Yay!!"
 	@date
 
+
 debug: 
-	$(CPP) $(OMP) -o $(EXE) $(SOURCE)  \
-		-L$(GSL)/lib -I$(GSL)/include -lgsl -lgslcblas \
-		$(OPT) $(WARN) $(DEBUG)
+	${CPP} -o ${EXE} ${SOURCES} \
+	${OMP_FLAG}  \
+	${OPT_FLAG}  \
+	${WARN_FLAG} \
+	${GSL_FLAG}  \
+	${DEBUG_FLAG}
+
 	@echo " "
 	@echo "------------------------------------"
 	@echo "End of compilation for debugging."
 	@date
 
-clean:
-	rm -f $(EXE)
 
-all: clean $(EXE)
+clean:
+	rm -f ${EXE}
+
+
+all: clean ${EXE}
 	
+

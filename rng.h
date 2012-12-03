@@ -63,7 +63,13 @@ struct RNG
     double Sample_gaussian(const double &sigma, const double &mean)
     {
         return ( gsl_ran_gaussian(ptr, sigma) + mean );
-     };
+    };
+
+    // mean = 0 case
+    double Sample_gaussian(const double &sigma)
+    {
+        return ( gsl_ran_gaussian(ptr, sigma) ) ; 
+    };
 };
        
 #endif

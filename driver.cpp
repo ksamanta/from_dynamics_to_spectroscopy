@@ -29,7 +29,7 @@ int main()
 
     // Gather the input parameters in the SpinBosonInput struct
     const SpinBosonInput  SBI("inp.txt");
-    const double DT        = SBI.DT;
+    const double DT = SBI.DT;
     const unsigned long MAX_TRAJ   = SBI.MAX_TRAJ;
     const unsigned long MAX_STEPS  = SBI.MAX_STEPS;
     const unsigned long MAX_POINTS = SBI.MAX_POINTS;
@@ -59,6 +59,7 @@ int main()
     //------------------------------------------------------------
 
     // First, generate MAX_TRAJ random intial x and p values 
+    // for MAX_TRAJ trajectories.
     // (Generate them all at once so that they conform to the 
     // correct distributions).
 
@@ -66,12 +67,12 @@ int main()
     vector<double> x_i(MAX_TRAJ), p_i(MAX_TRAJ);
     const double SIGMA_X = sqrt(SBI.kT)/SBI.OMEGA0;
     const double MEAN_X = -sqrt(SBI.Er/2.0)/SBI.OMEGA0; 
-    const double SIGMA_P = sqrt(SBI.kT), MEAN_P = 0.0;
+    const double SIGMA_P = sqrt(SBI.kT);
     
     for (unsigned long traj = 1; traj <= MAX_TRAJ; traj++)
     {
         x_i[traj] = RNG_x.Sample_gaussian(SIGMA_X, MEAN_X);
-        p_i[traj] = RNG_p.Sample_gaussian(SIGMA_P, MEAN_P);
+        p_i[traj] = RNG_p.Sample_gaussian(SIGMA_P);
     }
     
 
@@ -97,6 +98,7 @@ int main()
         unsigned long num_threads = omp_get_num_threads();
         unsigned long thread_id   = omp_get_thread_num();
 
+        // I'm choosing to print the info for the tread w/ highest ID
         if ( thread_id == (num_threads-1) ) 
         {
            OutStream << "Details for the thread w/ highest ID (#" 
@@ -105,7 +107,6 @@ int main()
 
 
         // Registers to store populations for the current thread
-
         vector<double> partial_pop_left(MAX_STEPS);
         vector<double> partial_pop_right(MAX_STEPS);
 
@@ -116,12 +117,10 @@ int main()
         for (unsigned long traj=1; traj <= MAX_TRAJ; traj++)
         {  
             // Feed in  the random initial values
-
             SB.Init_vars( x_i[traj], p_i[traj] );
 
 
             // Start the clock now
-
             for (unsigned long t=0; t < MAX_STEPS; t++) 
             {
                 // Add up the contributions to the total population
@@ -167,17 +166,22 @@ int main()
 
 
     //---------------------------------------------------------------
-    // Print about MAX_POINTS  equally spaced data points.
+    // Print approximately MAX_POINTS  equally spaced data points.
     // (The output file gets way too big if you print all of them!)
     //---------------------------------------------------------------
 
+   // Make decision on the interval of time points to be printed
     unsigned long t_step = MAX_STEPS/MAX_POINTS;  // integer division
     if ( t_step == 0  ) t_step = 1;
-    const int PRECISION = log10(MAX_STEPS);
+
+    // Find out the number of digits the highest time value may have
+    const unsigned int PRECISION = (unsigned int)  log10(MAX_STEPS) ;
  
+    // The output stream
     ofstream PopStream("pop.txt");  
     PopStream << "# Av pop for " << MAX_TRAJ << " trajectories:\n";
 
+    // Now print, and after that close the output stream
     for (unsigned long t=0; t < MAX_STEPS; t += t_step)
     {
         PopStream << scientific << setprecision(PRECISION) 
@@ -186,6 +190,9 @@ int main()
             << setw(20) << total_pop_right[t]/double(MAX_TRAJ) <<endl;
     }
     PopStream.close();
+
+
+    // All done
     return 0;
 }
 

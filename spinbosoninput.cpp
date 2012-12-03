@@ -70,22 +70,22 @@
 //===========================================================================
 
 inline string trim_right_copy(
-    const string& s,
-    const string& delimiters = " \f\n\r\t\v" )
+    const string &s,
+    const string &delimiters = " \f\n\r\t\v" )
 {
     return s.substr( 0, s.find_last_not_of( delimiters ) + 1 );
 }
 
 inline string trim_left_copy(
-    const string& s,
-    const string& delimiters = " \f\n\r\t\v" )
+    const string &s,
+    const string &delimiters = " \f\n\r\t\v" )
 {
     return s.substr( s.find_first_not_of( delimiters ) );
 }
 
 inline string trim_copy(
-    const string& s,
-    const string& delimiters = " \f\n\r\t\v" )
+    const string &s,
+    const string &delimiters = " \f\n\r\t\v" )
 {
     return trim_left_copy( trim_right_copy( s, delimiters ), delimiters );
 }
