@@ -1,7 +1,7 @@
 /*
 ***********************************************************************
 	spinboson.cpp -- Various "methods" for the SpinBoson class
-	Author: Kousik Samanta // 2012-10-04
+	Author: Kousik Samanta // 2012-10-04.
 ***********************************************************************
 */
 
